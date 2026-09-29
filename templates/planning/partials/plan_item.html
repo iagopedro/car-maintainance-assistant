@@ -1,0 +1,5 @@
+{% load maintenance_tags %}<li><a class="record-item" href="{% url 'plan_detail' plan.pk %}">
+  <span class="record-icon state-icon state-{{ plan.due.state }}"><i data-lucide="{{ plan.category|category_icon }}" aria-hidden="true"></i></span>
+  <span class="record-main"><strong>{{ plan.title }}</strong><span>{{ plan.due.summary }}</span></span>
+  <span class="record-side"><span class="state state-{{ plan.due.state }}">{{ plan.due.label }}</span>{% if plan.needs_validation %}<span class="tag tag-muted">A validar no manual</span>{% endif %}</span>
+</a></li>

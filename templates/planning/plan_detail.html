@@ -1,0 +1,40 @@
+{% extends 'base.html' %}{% load humanize maintenance_tags %}
+{% block title %}{{ plan.title }}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'plan_list' %}"><i data-lucide="arrow-left" aria-hidden="true"></i>Plano</a>
+<div class="page-heading"><div><p class="eyebrow">{{ plan.get_kind_display|upper }}</p><h1>{{ plan.title }}</h1>
+  <div class="tag-row"><span class="state state-{{ plan.due.state }}">{{ plan.due.label }}</span><span class="tag tag-plain">Prioridade {{ plan.get_priority_display|lower }}</span></div></div>
+  <div class="heading-actions"><a class="btn btn-outline-secondary" href="{% url 'plan_edit' plan.pk %}"><i data-lucide="pencil" aria-hidden="true"></i>Editar</a><a class="btn btn-outline-danger" href="{% url 'plan_delete' plan.pk %}"><i data-lucide="trash-2" aria-hidden="true"></i>Excluir</a></div></div>
+{% if plan.needs_validation %}<div class="notice notice-warning" role="note"><i data-lucide="book-open-check" aria-hidden="true"></i><span>Recomendação do fabricante ainda não conferida. Confira o intervalo no manual, informe a fonte e marque "Conferi esta informação na fonte".</span></div>{% endif %}
+{% if plan.status == 'dismissed' %}<div class="notice notice-info" role="note"><i data-lucide="archive" aria-hidden="true"></i><span>Descartado: {{ plan.dismissed_reason }}</span></div>{% endif %}
+<section class="due-box state-box-{{ plan.due.state }}">
+  <div><span>Situação</span><strong>{{ plan.due.summary }}</strong></div>
+  {% if plan.is_open %}<a class="btn btn-primary" href="{% url 'service_create' %}?plano={{ plan.pk }}"><i data-lucide="check" aria-hidden="true"></i>{% if plan.due.has_history %}Registrar realização{% else %}Registrar última realização{% endif %}</a>{% endif %}
+</section>
+<dl class="detail-grid">
+  <div><dt>Repetição</dt><dd>{% if plan.is_recurring %}A cada {% if plan.interval_km %}{{ plan.interval_km|intcomma }} km{% endif %}{% if plan.interval_km and plan.interval_months %} ou {% endif %}{% if plan.interval_months %}{{ plan.interval_months }} {{ plan.interval_months|pluralize:"mês,meses" }}{% endif %}{% else %}Uma vez{% endif %}</dd></div>
+  <div><dt>Última realização</dt><dd>{% if plan.due.last_service %}<a href="{% url 'service_detail' plan.due.last_service.pk %}">{{ plan.due.last_service.date|date:'d/m/Y'|default:'Data desconhecida' }}{% if plan.due.last_service.kilometers is not None %} · {{ plan.due.last_service.kilometers|intcomma }} km{% endif %}</a>{% elif plan.due.has_history %}Registrada sem data ou km{% else %}Sem registro{% endif %}</dd></div>
+  <div><dt>Custo estimado</dt><dd>{{ plan.estimated_cost|brl }}</dd></div>
+  <div><dt>Fonte</dt><dd>{{ plan.source|default:'Não informada' }}{% if plan.source %}<span class="dd-note">{% if plan.source_verified %}Conferida por você{% else %}Não conferida{% endif %}</span>{% endif %}</dd></div>
+  <div><dt>Categoria</dt><dd>{{ plan.get_category_display|default:'Não definida' }}</dd></div>
+</dl>
+{% if plan.reason %}<section class="detail-section"><h2>Por que fazer</h2><div class="prose">{{ plan.reason|linebreaks }}</div></section>{% endif %}
+{% if plan.notes %}<section class="detail-section"><h2>Observações</h2><div class="prose">{{ plan.notes|linebreaks }}</div></section>{% endif %}
+<section class="detail-section"><h2>Ações</h2>
+  <div class="plan-actions">
+  {% if plan.is_open %}
+    <details class="action-box"><summary><i data-lucide="calendar-check" aria-hidden="true"></i>Programar data na oficina</summary>
+      <form method="post" action="{% url 'plan_action' plan.pk 'programar' %}" class="inline-form">{% csrf_token %}<label class="form-label" for="id_scheduled_for">Data</label>{{ schedule_form.scheduled_for }}<button class="btn btn-outline-secondary" type="submit">Programar</button></form></details>
+    {% if link_form.fields.service.queryset.exists %}<details class="action-box"><summary><i data-lucide="link" aria-hidden="true"></i>Vincular serviço já registrado</summary>
+      <form method="post" action="{% url 'plan_action' plan.pk 'vincular' %}" class="inline-form">{% csrf_token %}<label class="form-label" for="id_service">Serviço</label>{{ link_form.service }}<button class="btn btn-outline-secondary" type="submit">Vincular</button></form></details>{% endif %}
+    <details class="action-box"><summary><i data-lucide="archive" aria-hidden="true"></i>Descartar item</summary>
+      <form method="post" action="{% url 'plan_action' plan.pk 'descartar' %}" class="inline-form">{% csrf_token %}<label class="form-label" for="id_dismissed_reason">Motivo</label>{{ dismiss_form.dismissed_reason }}<button class="btn btn-outline-secondary" type="submit">Descartar</button></form></details>
+  {% else %}
+    <form method="post" action="{% url 'plan_action' plan.pk 'reativar' %}">{% csrf_token %}<button class="btn btn-outline-secondary" type="submit"><i data-lucide="rotate-ccw" aria-hidden="true"></i>Reativar item</button></form>
+  {% endif %}
+  </div>
+</section>
+<section class="detail-section"><h2>Histórico</h2>
+  {% if services %}<ul class="record-list compact">{% for service in services %}{% include 'maintenance/partials/service_item.html' %}{% endfor %}</ul>{% else %}<p class="muted">Nenhum serviço ligado a este item.</p>{% endif %}
+</section>
+{% endblock %}

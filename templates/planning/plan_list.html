@@ -1,0 +1,24 @@
+{% extends 'base.html' %}{% load maintenance_tags %}
+{% block title %}Plano de manutenção{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">{{ vehicle|upper }}</p><h1>Plano de manutenção</h1><p class="lead-text">O que fazer, quando e por quê. Os avisos usam km ou data, o que chegar primeiro.</p></div>
+  <div class="heading-actions">{% include 'partials/vehicle_switcher.html' %}<a class="btn btn-primary" href="{% url 'plan_create' %}"><i data-lucide="plus" aria-hidden="true"></i>Novo item</a></div></div>
+{% if missing_suggestions %}<aside class="hint-box"><i data-lucide="list-checks" aria-hidden="true"></i><div><strong>{% if open_count %}Faltou algum item?{% else %}Comece pelas sugestões{% endif %}</strong><p>Lista de itens comuns de manutenção, sem intervalos prontos: você informa os valores do manual do seu carro.</p><a class="text-link" href="{% url 'plan_suggestions' %}">Ver sugestões ({{ missing_suggestions }})<i data-lucide="arrow-right" aria-hidden="true"></i></a></div></aside>{% endif %}
+<nav class="tabs" aria-label="Itens do plano"><a href="{% url 'plan_list' %}" {% if not closed_view %}aria-current="page"{% endif %}>Ativos<span class="count">{{ open_count }}</span></a><a href="?view=closed" {% if closed_view %}aria-current="page"{% endif %}>Realizados e descartados<span class="count">{{ closed_plans|length }}</span></a></nav>
+{% if closed_view %}
+  {% if closed_plans %}<ul class="record-list">{% for plan in closed_plans %}{% include 'planning/partials/plan_item.html' %}{% endfor %}</ul>
+  {% else %}<section class="inline-empty"><i data-lucide="archive" aria-hidden="true"></i><h2>Nada por aqui</h2><p class="muted">Itens únicos realizados e itens descartados aparecem nesta aba.</p></section>{% endif %}
+{% else %}
+  {% if attention_count %}<div class="results-summary"><span>{{ attention_count }} ite{{ attention_count|pluralize:"m,ns" }} próximo{{ attention_count|pluralize }} ou atrasado{{ attention_count|pluralize }}</span>{% if estimate_total is not None %}<span>Estimativa: <strong>{{ estimate_total|brl }}</strong> ({{ estimate_count }} com valor estimado)</span>{% endif %}</div>{% endif %}
+  {% for key, label, plans in groups %}
+  <section class="plan-group" id="grupo-{{ key }}" aria-labelledby="titulo-{{ key }}">
+    <h2 id="titulo-{{ key }}" class="group-title">{{ label }} <span class="heading-count">{{ plans|length }}</span></h2>
+    {% if key == 'unknown' %}<p class="group-hint">Sem data ou km: registre a última realização ou informe o intervalo do manual. Se não souber, peça avaliação na próxima revisão.</p>{% endif %}
+    <ul class="record-list">{% for plan in plans %}{% include 'planning/partials/plan_item.html' %}{% endfor %}</ul>
+  </section>
+  {% empty %}
+  <section class="inline-empty"><i data-lucide="calendar-clock" aria-hidden="true"></i><h2>Nenhum item no plano</h2><p class="muted">Adicione itens pelas sugestões ou crie o seu.</p><a class="btn btn-primary" href="{% url 'plan_suggestions' %}">Ver sugestões</a></section>
+  {% endfor %}
+{% endif %}
+<p class="disclaimer">O plano organiza lembretes a partir dos dados que você informa. Intervalos marcados "a validar" precisam ser conferidos no manual. Não substitui a avaliação de um mecânico.</p>
+{% endblock %}

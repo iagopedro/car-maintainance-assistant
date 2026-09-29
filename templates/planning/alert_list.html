@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block title %}Alertas{% endblock %}
+{% block content %}
+<div class="page-heading"><div>{% if vehicle %}<p class="eyebrow">{{ vehicle|upper }}</p>{% endif %}<h1>Alertas</h1><p class="lead-text">Avisos com o motivo de cada um. Eles não indicam defeito; ajudam a decidir o que verificar.</p></div>
+  <div class="heading-actions">{% if vehicle %}{% include 'partials/vehicle_switcher.html' %}{% endif %}<a class="btn btn-outline-secondary" href="{% url 'alert_settings' %}"><i data-lucide="sliders-horizontal" aria-hidden="true"></i>Configurar</a></div></div>
+{% if alerts %}<ul class="alert-list">{% for alert in alerts %}{% include 'planning/partials/alert_item.html' %}{% endfor %}</ul>
+{% else %}<section class="inline-empty"><i data-lucide="bell-off" aria-hidden="true"></i><h2>Nenhum alerta no momento</h2><p class="muted">Os alertas vêm do plano de manutenção, da quilometragem, dos problemas em aberto e das garantias.</p>{% if vehicle %}<a class="btn btn-outline-secondary" href="{% url 'plan_list' %}">Ver plano</a>{% endif %}</section>{% endif %}
+<p class="disclaimer">Os alertas usam somente os dados registrados. Na dúvida, procure um mecânico.</p>
+{% endblock %}

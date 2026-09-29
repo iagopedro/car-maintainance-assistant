@@ -10,6 +10,7 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.vary import vary_on_headers
 
 from garage.context import get_active_vehicle
+from planning.models import MaintenancePlan
 
 from .attachments import save_attachments
 from .forms import (LOCATION_SUGGESTIONS, SERVICE_SUGGESTIONS, AttachmentUploadForm, PartFormSet, ProblemFilterForm,
@@ -104,6 +105,10 @@ def service_form_view(request, vehicle, service):
         if problem_id and problem_id.isdigit():
             initial["resolves"] = problem_id
             initial["kind"] = ServiceRecord.Kind.CORRECTIVE
+        plan = getattr(request, "_linked_plan", None)
+        if plan:
+            initial.update(plan=plan.pk, title=plan.title, category=plan.category,
+                           kind=ServiceRecord.Kind.INSPECTION if plan.kind == "inspection" else ServiceRecord.Kind.PREVENTIVE)
     data = (request.POST, request.FILES) if request.method == "POST" else (None, None)
     form = ServiceForm(*data, instance=service, vehicle=vehicle, initial=initial)
     parts = PartFormSet(*data, instance=service, prefix="parts")
@@ -129,8 +134,12 @@ def service_form_view(request, vehicle, service):
 @login_required
 def service_create(request):
     problem_id = request.GET.get("problema", "")
+    plan_id = request.GET.get("plano", "")
     if problem_id.isdigit():
         vehicle = owned_problem(request, int(problem_id)).vehicle
+    elif plan_id.isdigit():
+        request._linked_plan = get_object_or_404(MaintenancePlan, pk=int(plan_id), vehicle__owner=request.user)
+        vehicle = request._linked_plan.vehicle
     else:
         vehicle = active_vehicle_or_redirect(request)
     if not vehicle:

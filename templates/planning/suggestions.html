@@ -1,0 +1,18 @@
+{% extends 'base.html' %}{% load maintenance_tags %}
+{% block title %}Sugestões para o plano{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'plan_list' %}"><i data-lucide="arrow-left" aria-hidden="true"></i>Plano</a>
+<div class="page-heading"><div><p class="eyebrow">{{ vehicle|upper }}</p><h1>Sugestões para o plano</h1><p class="lead-text">Itens comuns de manutenção. Nenhum vem com intervalo pronto: depois de adicionar, informe os valores do manual do seu carro.</p></div></div>
+<form method="post" class="suggestion-form">{% csrf_token %}
+  {% if form.errors %}<div class="notice notice-error" role="alert">{% for error in form.keys.errors %}{{ error }}{% endfor %}</div>{% endif %}
+  <fieldset><legend class="visually-hidden">Itens sugeridos</legend>
+  <ul class="suggestion-list">{% for suggestion in suggestions %}
+    <li><label class="suggestion-item{% if suggestion.key in added %} is-added{% endif %}">
+      <input type="checkbox" name="keys" value="{{ suggestion.key }}" class="form-check-input" {% if suggestion.key in added %}disabled{% endif %}>
+      <span class="record-icon"><i data-lucide="{{ suggestion.category|category_icon }}" aria-hidden="true"></i></span>
+      <span class="suggestion-text"><strong>{{ suggestion.title }}</strong><span class="suggestion-kind">{{ suggestion.kind_label }}{% if suggestion.key in added %} · já está no plano{% endif %}</span><span>{{ suggestion.reason }}</span></span>
+    </label></li>{% endfor %}
+  </ul></fieldset>
+  <div class="form-actions sticky-actions"><a class="btn btn-outline-secondary" href="{% url 'plan_list' %}">Cancelar</a><button class="btn btn-primary" type="submit"><i data-lucide="plus" aria-hidden="true"></i>Adicionar selecionados</button></div>
+</form>
+{% endblock %}

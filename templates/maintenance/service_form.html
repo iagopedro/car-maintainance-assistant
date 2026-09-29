@@ -6,6 +6,7 @@
 <form method="post" enctype="multipart/form-data" class="editor-form quick-form">{% csrf_token %}
   {% if form.non_field_errors %}<div class="notice notice-error" role="alert">{% for error in form.non_field_errors %}{{ error }} {% endfor %}</div>{% endif %}
   {% if form.resolves and form.resolves.value and not form.resolves.errors %}<div class="linked-problem">{% include 'partials/field.html' with field=form.resolves %}</div>{% endif %}
+  {% if form.plan and form.plan.value and creating and not form.plan.errors %}<div class="linked-problem">{% include 'partials/field.html' with field=form.plan %}</div>{% endif %}
   <div class="form-grid">
     {% include 'partials/field.html' with field=form.category %}
     {% include 'partials/field.html' with field=form.title %}
@@ -18,6 +19,7 @@
     <summary><span>Mais detalhes</span><span class="summary-hint">Tipo, oficina, peças, custos e garantia</span></summary>
     <div class="details-body">
       {% if form.resolves %}{% if not form.resolves.value or form.resolves.errors %}{% include 'partials/field.html' with field=form.resolves %}{% endif %}{% endif %}
+      {% if form.plan %}{% if not form.plan.value or not creating or form.plan.errors %}{% include 'partials/field.html' with field=form.plan %}{% endif %}{% endif %}
       {% include 'partials/field.html' with field=form.kind %}
       {% include 'partials/field.html' with field=form.workshop %}
       <fieldset class="parts-fieldset"><legend>Peças substituídas</legend>

@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}{% if creating %}Novo item do plano{% else %}Editar item{% endif %}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% if creating %}{% url 'plan_list' %}{% else %}{% url 'plan_detail' plan.pk %}{% endif %}"><i data-lucide="arrow-left" aria-hidden="true"></i>{% if creating %}Plano{% else %}{{ plan.title }}{% endif %}</a>
+<div class="page-heading"><div><p class="eyebrow">{{ vehicle|upper }}</p><h1>{% if creating %}Novo item do plano{% else %}Editar item{% endif %}</h1><p class="lead-text">Preencha o intervalo que se repete ou só a próxima data ou km. Sem nenhum dos dois, o item fica como "sem referência".</p></div></div>
+<form method="post" class="editor-form quick-form">{% csrf_token %}
+  {% if form.non_field_errors %}<div class="notice notice-error" role="alert">{% for error in form.non_field_errors %}{{ error }} {% endfor %}</div>{% endif %}
+  {% include 'partials/field.html' with field=form.title %}
+  {% include 'partials/field.html' with field=form.kind %}
+  {% include 'partials/field.html' with field=form.priority %}
+  <fieldset><legend>Quando fazer</legend>
+    <div class="form-grid">
+      {% include 'partials/field.html' with field=form.interval_km %}
+      {% include 'partials/field.html' with field=form.interval_months %}
+      {% include 'partials/field.html' with field=form.next_km %}
+      {% include 'partials/field.html' with field=form.next_date %}
+    </div>
+  </fieldset>
+  <details class="more-details" {% if form.details_have_content %}open{% endif %}>
+    <summary><span>Mais detalhes</span><span class="summary-hint">Fonte, motivo, custo estimado e categoria</span></summary>
+    <div class="details-body">
+      <div class="form-grid">
+        {% include 'partials/field.html' with field=form.source %}
+        {% include 'partials/field.html' with field=form.estimated_cost %}
+      </div>
+      {% include 'partials/field.html' with field=form.source_verified %}
+      {% include 'partials/field.html' with field=form.category %}
+      {% include 'partials/field.html' with field=form.reason %}
+      {% include 'partials/field.html' with field=form.notes %}
+    </div>
+  </details>
+  <datalist id="plan-suggestions">{% for suggestion in suggestions %}<option value="{{ suggestion.title }}"></option>{% endfor %}</datalist>
+  <div class="form-actions sticky-actions"><a class="btn btn-outline-secondary" href="{% if creating %}{% url 'plan_list' %}{% else %}{% url 'plan_detail' plan.pk %}{% endif %}">Cancelar</a><button class="btn btn-primary" type="submit"><i data-lucide="check" aria-hidden="true"></i>Salvar item</button></div>
+</form>
+{% endblock %}

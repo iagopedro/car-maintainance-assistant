@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "axes",
     "garage",
     "maintenance",
+    "planning",
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -55,6 +56,7 @@ TEMPLATES = [{
         "django.contrib.auth.context_processors.auth",
         "django.contrib.messages.context_processors.messages",
         "garage.context.active_vehicle",
+        "planning.alerts.alert_count",
     ]},
 }]
 WSGI_APPLICATION = "config.wsgi.application"

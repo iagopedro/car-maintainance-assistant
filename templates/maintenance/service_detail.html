@@ -11,6 +11,7 @@
   <div><dt>Valor total</dt><dd>{{ service.total_cost|brl }}{% if service.parts_cost is not None or service.labor_cost is not None %}<span class="dd-note">Peças {{ service.parts_cost|brl }} · Mão de obra {{ service.labor_cost|brl }}</span>{% endif %}</dd></div>
   <div><dt>Oficina ou profissional</dt><dd>{{ service.workshop|default:'Não informada' }}</dd></div>
   {% if service.warranty_notes %}<div><dt>Condições da garantia</dt><dd>{{ service.warranty_notes }}</dd></div>{% endif %}
+  {% if service.plan %}<div><dt>Item do plano</dt><dd><a href="{% url 'plan_detail' service.plan.pk %}">{{ service.plan.title }}</a></dd></div>{% endif %}
   <div><dt>Veículo</dt><dd>{{ vehicle }}</dd></div>
 </dl>
 {% if parts %}<section class="detail-section"><h2>Peças substituídas</h2><ul class="parts-list">{% for part in parts %}<li><strong>{{ part.name }}</strong>{% if part.brand_model %}<span>{{ part.brand_model }}</span>{% endif %}</li>{% endfor %}</ul></section>{% endif %}

@@ -68,6 +68,8 @@ class ServiceRecord(models.Model):
     notes = models.TextField("Observações", blank=True, max_length=5000)
     odometer_reading = models.OneToOneField(OdometerReading, on_delete=models.SET_NULL, null=True, blank=True,
                                             editable=False, related_name="service")
+    plan = models.ForeignKey("planning.MaintenancePlan", on_delete=models.SET_NULL, null=True, blank=True,
+                             related_name="services", verbose_name="Item do plano realizado")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -90,6 +92,8 @@ class ServiceRecord(models.Model):
         not_in_future(self.date, "date", "A data do serviço não pode estar no futuro.")
         if self.date and self.warranty_until and self.warranty_until < self.date:
             raise ValidationError({"warranty_until": "A garantia não pode terminar antes do serviço."})
+        if self.plan_id and self.plan.vehicle_id != self.vehicle_id:
+            raise ValidationError({"plan": "Escolha um item do plano deste veículo."})
         known_parts = [cost for cost in (self.parts_cost, self.labor_cost) if cost is not None]
         if known_parts and self.total_cost is None:
             self.total_cost = sum(known_parts)

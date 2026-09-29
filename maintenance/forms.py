@@ -2,6 +2,7 @@ import re
 from decimal import Decimal
 
 from django import forms
+from django.db.models import Q
 from django.utils import timezone
 
 from garage.forms import StyledFormMixin
@@ -66,7 +67,7 @@ class ServiceForm(StyledFormMixin, forms.ModelForm):
     class Meta:
         model = ServiceRecord
         fields = ["category", "title", "date", "kilometers", "total_cost", "kind", "workshop", "parts_cost",
-                  "labor_cost", "warranty_until", "warranty_notes", "description", "notes"]
+                  "labor_cost", "warranty_until", "warranty_notes", "description", "notes", "plan"]
         widgets = {
             "date": date_widget(), "warranty_until": forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
             "kind": forms.RadioSelect, "title": forms.TextInput(attrs={"list": "service-suggestions", "placeholder": "Ex.: Troca de óleo e filtro"}),
@@ -75,7 +76,7 @@ class ServiceForm(StyledFormMixin, forms.ModelForm):
         help_texts = {"date": UNKNOWN_DATE_HELP, "title": "Opcional. Sem título, a categoria é usada."}
 
     DETAIL_FIELDS = ["kind", "workshop", "parts_cost", "labor_cost", "warranty_until", "warranty_notes",
-                     "description", "notes", "resolves"]
+                     "description", "notes", "resolves", "plan"]
 
     def __init__(self, *args, vehicle, **kwargs):
         super().__init__(*args, **kwargs)
@@ -91,6 +92,15 @@ class ServiceForm(StyledFormMixin, forms.ModelForm):
             self.fields["resolves"].queryset = problems
         else:
             del self.fields["resolves"]
+        plans = vehicle.plans.exclude(status="dismissed")
+        if self.instance.plan_id:
+            plans = vehicle.plans.filter(Q(pk=self.instance.plan_id) | ~Q(status="dismissed"))
+        if plans.exists():
+            self.fields["plan"].queryset = plans
+            self.fields["plan"].empty_label = "Nenhum"
+            self.fields["plan"].help_text = "Liga o serviço ao plano e recalcula a próxima referência."
+        else:
+            del self.fields["plan"]
 
     def clean(self):
         cleaned = super().clean()
@@ -104,7 +114,7 @@ class ServiceForm(StyledFormMixin, forms.ModelForm):
     def details_have_content(self):
         return any(self.errors.get(name) for name in self.DETAIL_FIELDS) or bool(
             self.instance.pk and any(getattr(self.instance, name, None) not in (None, "", ServiceRecord.Kind.UNSPECIFIED)
-                                     for name in self.DETAIL_FIELDS if name != "resolves"))
+                                     for name in self.DETAIL_FIELDS if name not in ("resolves", "plan")))
 
 
 class PartForm(StyledFormMixin, forms.ModelForm):

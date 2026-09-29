@@ -2,6 +2,8 @@ from django.db import transaction
 from django.utils import timezone
 
 from garage.models import OdometerReading, Vehicle
+from planning.models import MaintenancePlan
+from planning.services import apply_completion, refresh_after_unlink
 
 from .attachments import save_attachments
 from .models import Problem, ProblemUpdate
@@ -39,6 +41,7 @@ def resolve_with_service(problem, service):
 
 @transaction.atomic
 def save_service(*, owner, form, parts):
+    previous_plan_id = form.initial.get("plan") if form.instance.pk else None
     service = form.save(commit=False)
     service.vehicle = Vehicle.objects.select_for_update().get(pk=service.vehicle_id, owner=owner)
     stale_reading = sync_service_reading(service)
@@ -49,16 +52,23 @@ def save_service(*, owner, form, parts):
     parts.save()
     if form.cleaned_data.get("resolves"):
         resolve_with_service(form.cleaned_data["resolves"], service)
+    if service.plan_id != previous_plan_id:
+        if service.plan_id:
+            apply_completion(service.plan)
+        if previous_plan_id:
+            refresh_after_unlink(MaintenancePlan.objects.get(pk=previous_plan_id))
     save_attachments(form.cleaned_data.get("attachments") or [], service=service)
     return service
 
 
 @transaction.atomic
 def delete_service(service):
-    reading = service.odometer_reading
+    reading, plan = service.odometer_reading, service.plan
     service.delete()
     if reading:
         reading.delete()
+    if plan:
+        refresh_after_unlink(plan)
 
 
 def apply_status(problem, status, when):

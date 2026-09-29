@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}Configurar alertas{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'alert_list' %}"><i data-lucide="arrow-left" aria-hidden="true"></i>Alertas</a>
+<div class="page-heading"><div><p class="eyebrow">PREFERÊNCIAS</p><h1>Configurar alertas</h1><p class="lead-text">Defina com quanta antecedência quer ser avisado e quais prioridades mostrar.</p></div></div>
+<form method="post" class="editor-form">{% csrf_token %}
+  <fieldset><legend>Antecedência</legend><div class="form-grid">
+    {% include 'partials/field.html' with field=form.km_ahead %}
+    {% include 'partials/field.html' with field=form.days_ahead %}
+    {% include 'partials/field.html' with field=form.reading_reminder_days %}
+  </div></fieldset>
+  <fieldset><legend>Prioridades exibidas</legend>
+    {% include 'partials/field.html' with field=form.show_high %}
+    {% include 'partials/field.html' with field=form.show_medium %}
+    {% include 'partials/field.html' with field=form.show_low %}
+  </fieldset>
+  <div class="form-actions"><a class="btn btn-outline-secondary" href="{% url 'alert_list' %}">Cancelar</a><button class="btn btn-primary" type="submit"><i data-lucide="check" aria-hidden="true"></i>Salvar</button></div>
+</form>
+{% endblock %}

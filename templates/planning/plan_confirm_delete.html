@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}Excluir item do plano{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">EXCLUIR ITEM DO PLANO</p><h1>Excluir “{{ plan.title }}”?</h1></div></div>
+<section class="confirm-box">
+  <i data-lucide="trash-2" aria-hidden="true"></i>
+  <div>
+    <p><strong>Esta ação não pode ser desfeita.</strong></p>
+    <p>Os serviços ligados a este item continuam registrados. Se só não quiser mais os avisos, prefira descartar o item.</p>
+    <form method="post" class="form-actions">{% csrf_token %}
+      <a class="btn btn-outline-secondary" href="{% url 'plan_detail' plan.pk %}">Cancelar</a>
+      <button class="btn btn-danger" type="submit"><i data-lucide="trash-2" aria-hidden="true"></i>Excluir definitivamente</button>
+    </form>
+  </div>
+</section>
+{% endblock %}
