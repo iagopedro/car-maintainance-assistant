@@ -1,0 +1,40 @@
+{% extends 'base.html' %}{% load humanize maintenance_tags %}
+{% block title %}{{ problem.display_title }}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'problem_list' %}"><i data-lucide="arrow-left" aria-hidden="true"></i>Problemas</a>
+<div class="page-heading"><div><p class="eyebrow">{{ problem.get_symptom_display|upper }}</p><h1>{{ problem.display_title }}</h1>
+  <div class="tag-row"><span class="status status-{{ problem.status }}">{{ problem.get_status_display }}</span><span class="tag tag-plain">Gravidade percebida: {{ problem.get_severity_display|lower }}</span></div></div>
+  <div class="heading-actions"><a class="btn btn-outline-secondary" href="{% url 'problem_edit' problem.pk %}"><i data-lucide="pencil" aria-hidden="true"></i>Editar</a><a class="btn btn-outline-danger" href="{% url 'problem_delete' problem.pk %}"><i data-lucide="trash-2" aria-hidden="true"></i>Excluir</a></div></div>
+{% if problem.is_active and problem.severity == 'high' %}<div class="notice notice-warning" role="note"><i data-lucide="triangle-alert" aria-hidden="true"></i><span>Você marcou gravidade alta. Se envolver freios, direção, superaquecimento ou luz vermelha no painel, evite rodar e procure avaliação profissional.</span></div>{% endif %}
+{% if problem.ruled_out %}<aside class="ruled-out"><i data-lucide="ban" aria-hidden="true"></i><div><strong>Causas já descartadas</strong><div class="prose">{{ problem.ruled_out|linebreaks }}</div></div></aside>{% endif %}
+<dl class="detail-grid">
+  <div><dt>Quando percebeu</dt><dd>{{ problem.reported_on|date:'d/m/Y'|default:'Data desconhecida' }}</dd></div>
+  <div><dt>Quilometragem</dt><dd>{% if problem.kilometers is not None %}{{ problem.kilometers|intcomma }} km{% else %}Não informada{% endif %}</dd></div>
+  <div><dt>Onde no carro</dt><dd>{{ problem.location|default:'Não informado' }}</dd></div>
+  <div><dt>Sistema relacionado</dt><dd>{{ problem.get_category_display|default:'Não identificado' }}</dd></div>
+  <div><dt>Veículo</dt><dd>{{ vehicle }}</dd></div>
+</dl>
+<section class="detail-section"><h2>Relato</h2><div class="prose">{{ problem.description|linebreaks }}</div></section>
+{% if problem.diagnosis %}<section class="detail-section"><h2>Diagnóstico</h2><div class="prose">{{ problem.diagnosis|linebreaks }}</div></section>{% endif %}
+{% if problem.solution or problem.resolved_by_service %}<section class="detail-section solution-section"><h2>Solução</h2>{% if problem.solution %}<div class="prose">{{ problem.solution|linebreaks }}</div>{% endif %}
+  <p class="muted">{% if problem.resolved_on %}Resolvido em {{ problem.resolved_on|date:'d/m/Y' }}.{% endif %} {% if problem.resolved_by_service %}<a href="{% url 'service_detail' problem.resolved_by_service.pk %}">Ver serviço: {{ problem.resolved_by_service.display_title }}</a>{% endif %}</p></section>{% endif %}
+<div class="problem-columns">
+  <section class="detail-section"><h2>Acompanhamento</h2>
+    <ol class="timeline">
+      <li><span class="timeline-marker"></span><div><strong>Relato registrado</strong><time {% if problem.reported_on %}datetime="{{ problem.reported_on|date:'Y-m-d' }}"{% endif %}>{{ problem.reported_on|date:'d/m/Y'|default:'Data desconhecida' }}</time></div></li>
+      {% for update in updates %}<li><span class="timeline-marker {% if update.status %}status-marker status-{{ update.status }}{% endif %}"></span><div><strong>{% if update.status %}{{ update.get_status_display }}{% else %}Atualização{% endif %}</strong><time datetime="{{ update.date|date:'Y-m-d' }}">{{ update.date|date:'d/m/Y' }}</time>{% if update.note %}<p>{{ update.note|linebreaksbr }}</p>{% endif %}</div></li>{% endfor %}
+    </ol>
+  </section>
+  <section class="update-box" aria-labelledby="update-title"><h2 id="update-title">Adicionar acompanhamento</h2>
+    <form method="post">{% csrf_token %}
+      {% if update_form.non_field_errors %}<div class="notice notice-error" role="alert">{% for error in update_form.non_field_errors %}{{ error }} {% endfor %}</div>{% endif %}
+      {% include 'partials/field.html' with field=update_form.note %}
+      <div class="form-grid">{% include 'partials/field.html' with field=update_form.date %}{% include 'partials/field.html' with field=update_form.status %}</div>
+      <button class="btn btn-primary" type="submit"><i data-lucide="check" aria-hidden="true"></i>Salvar acompanhamento</button>
+    </form>
+    {% if problem.is_active %}<a class="text-link" href="{% url 'service_create' %}?problema={{ problem.pk }}"><i data-lucide="wrench" aria-hidden="true"></i>Registrar o serviço que resolveu</a>{% endif %}
+  </section>
+</div>
+{% url 'problem_attachment_upload' problem.pk as upload_url %}{% include 'maintenance/partials/attachments.html' %}
+<p class="disclaimer">Estes registros ajudam na conversa com o mecânico. Não substituem uma avaliação profissional.</p>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}{% if creating %}Registrar serviço{% else %}Editar serviço{% endif %}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% if creating %}{% url 'service_list' %}{% else %}{% url 'service_detail' service.pk %}{% endif %}"><i data-lucide="arrow-left" aria-hidden="true"></i>{% if creating %}Serviços{% else %}{{ service.display_title }}{% endif %}</a>
+<div class="page-heading"><div><p class="eyebrow">{{ vehicle|upper }}</p><h1>{% if creating %}Registrar serviço{% else %}Editar serviço{% endif %}</h1><p class="lead-text">Só a categoria é obrigatória. Preencha o que souber agora e complete depois.</p></div></div>
+<form method="post" enctype="multipart/form-data" class="editor-form quick-form">{% csrf_token %}
+  {% if form.non_field_errors %}<div class="notice notice-error" role="alert">{% for error in form.non_field_errors %}{{ error }} {% endfor %}</div>{% endif %}
+  {% if form.resolves and form.resolves.value and not form.resolves.errors %}<div class="linked-problem">{% include 'partials/field.html' with field=form.resolves %}</div>{% endif %}
+  <div class="form-grid">
+    {% include 'partials/field.html' with field=form.category %}
+    {% include 'partials/field.html' with field=form.title %}
+    {% include 'partials/field.html' with field=form.date %}
+    {% include 'partials/field.html' with field=form.kilometers %}
+    {% include 'partials/field.html' with field=form.total_cost %}
+    {% include 'partials/field.html' with field=form.attachments %}
+  </div>
+  <details class="more-details" {% if form.details_have_content or parts.total_error_count or parts.initial_form_count %}open{% endif %}>
+    <summary><span>Mais detalhes</span><span class="summary-hint">Tipo, oficina, peças, custos e garantia</span></summary>
+    <div class="details-body">
+      {% if form.resolves %}{% if not form.resolves.value or form.resolves.errors %}{% include 'partials/field.html' with field=form.resolves %}{% endif %}{% endif %}
+      {% include 'partials/field.html' with field=form.kind %}
+      {% include 'partials/field.html' with field=form.workshop %}
+      <fieldset class="parts-fieldset"><legend>Peças substituídas</legend>
+        {{ parts.management_form }}
+        {% if parts.non_form_errors %}<div class="field-errors">{{ parts.non_form_errors }}</div>{% endif %}
+        <div id="parts-list">{% for part in parts %}{% include 'maintenance/partials/part_row.html' %}{% endfor %}</div>
+        <template id="part-template">{% include 'maintenance/partials/part_row.html' with part=parts.empty_form %}</template>
+        <button type="button" class="text-link" data-add-part><i data-lucide="plus" aria-hidden="true"></i>Adicionar outra peça</button>
+      </fieldset>
+      <div class="form-grid">
+        {% include 'partials/field.html' with field=form.parts_cost %}
+        {% include 'partials/field.html' with field=form.labor_cost %}
+        {% include 'partials/field.html' with field=form.warranty_until %}
+        {% include 'partials/field.html' with field=form.warranty_notes %}
+      </div>
+      {% include 'partials/field.html' with field=form.description %}
+      {% include 'partials/field.html' with field=form.notes %}
+    </div>
+  </details>
+  <datalist id="service-suggestions">{% for suggestion in service_suggestions %}<option value="{{ suggestion }}"></option>{% endfor %}</datalist>
+  <datalist id="workshop-suggestions">{% for workshop in workshops %}<option value="{{ workshop }}"></option>{% endfor %}</datalist>
+  <div class="form-actions sticky-actions"><a class="btn btn-outline-secondary" href="{% if creating %}{% url 'service_list' %}{% else %}{% url 'service_detail' service.pk %}{% endif %}">Cancelar</a><button class="btn btn-primary" type="submit"><i data-lucide="check" aria-hidden="true"></i>Salvar serviço</button></div>
+</form>
+{% endblock %}

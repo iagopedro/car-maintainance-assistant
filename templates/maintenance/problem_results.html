@@ -1,0 +1,9 @@
+<div id="problem-results" aria-live="polite">
+{% if page_obj.paginator.count %}
+<ul class="record-list">{% for problem in page_obj %}{% include 'maintenance/partials/problem_item.html' %}{% endfor %}</ul>
+{% include 'partials/pagination.html' %}
+{% else %}
+<section class="inline-empty"><i data-lucide="message-square-warning" aria-hidden="true"></i><h2>{% if request.GET.q %}Nenhum problema encontrado{% elif view == 'active' %}Nenhum problema em aberto{% elif view == 'closed' %}Nenhum problema resolvido{% else %}Nenhum problema registrado{% endif %}</h2>
+  <p class="muted">Percebeu algo diferente no carro? Registre enquanto está fresco na memória.</p><a class="btn btn-outline-secondary" href="{% url 'problem_create' %}">Relatar problema</a></section>
+{% endif %}
+</div>

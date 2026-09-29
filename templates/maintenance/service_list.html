@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}Serviços{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">{{ vehicle|upper }}</p><h1>Serviços</h1></div><div class="heading-actions">{% include 'partials/vehicle_switcher.html' %}<a class="btn btn-primary" href="{% url 'service_create' %}"><i data-lucide="plus" aria-hidden="true"></i>Registrar serviço</a></div></div>
+<form method="get" class="filter-form" hx-get="{% url 'service_list' %}" hx-target="#service-results" hx-push-url="true" hx-swap="outerHTML" hx-trigger="submit, change">
+  {% include 'partials/field.html' with field=filter_form.q %}{% include 'partials/field.html' with field=filter_form.category %}
+  <details class="filter-more" {% if filter_form.start.value or filter_form.end.value %}open{% endif %}><summary>Período</summary><div class="form-grid">{% include 'partials/field.html' with field=filter_form.start %}{% include 'partials/field.html' with field=filter_form.end %}</div></details>
+  <div class="filter-actions"><button type="submit" class="btn btn-outline-secondary"><i data-lucide="search" aria-hidden="true"></i>Filtrar</button><a class="text-link" href="{% url 'service_list' %}">Limpar</a></div>
+</form>
+{% include 'maintenance/service_results.html' %}
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Registrar{% endblock %}
+{% block content %}
+<div class="page-heading"><div>{% if vehicle %}<p class="eyebrow">{{ vehicle|upper }}</p>{% endif %}<h1>O que você quer registrar?</h1></div>{% if vehicle %}{% include 'partials/vehicle_switcher.html' %}{% endif %}</div>
+{% if vehicle %}
+<div class="register-options">
+  <a class="register-option" href="{% url 'service_create' %}"><span class="register-icon"><i data-lucide="wrench" aria-hidden="true"></i></span><span class="register-text"><strong>Serviço ou manutenção</strong><span>Troca de óleo, pneus, revisão, conserto, som...</span></span><i data-lucide="chevron-right" aria-hidden="true"></i></a>
+  <a class="register-option" href="{% url 'problem_create' %}"><span class="register-icon problem-icon"><i data-lucide="message-square-warning" aria-hidden="true"></i></span><span class="register-text"><strong>Problema ou sintoma</strong><span>Ruído, vibração, luz no painel, vazamento...</span></span><i data-lucide="chevron-right" aria-hidden="true"></i></a>
+  <a class="register-option" href="{% url 'reading_create' vehicle.pk %}"><span class="register-icon km-icon"><i data-lucide="gauge" aria-hidden="true"></i></span><span class="register-text"><strong>Quilometragem</strong><span>Leitura atual do painel</span></span><i data-lucide="chevron-right" aria-hidden="true"></i></a>
+</div>
+{% else %}
+<section class="empty-state"><i data-lucide="car-front" aria-hidden="true"></i><h2>Cadastre um veículo primeiro</h2><a class="btn btn-primary" href="{% url 'vehicle_create' %}?preset=exemplo">Cadastrar veículo de exemplo</a></section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends 'base.html' %}{% load humanize maintenance_tags %}
+{% block title %}{{ service.display_title }}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'service_list' %}"><i data-lucide="arrow-left" aria-hidden="true"></i>Serviços</a>
+<div class="page-heading"><div><p class="eyebrow">{{ service.get_category_display|upper }}</p><h1>{{ service.display_title }}</h1>
+  <div class="tag-row">{% if service.kind != 'unspecified' %}<span class="tag">{{ service.get_kind_display }}</span>{% endif %}{% if service.warranty_active %}<span class="tag">Em garantia até {{ service.warranty_until|date:'d/m/Y' }}</span>{% elif service.warranty_until %}<span class="tag tag-muted">Garantia encerrada em {{ service.warranty_until|date:'d/m/Y' }}</span>{% endif %}</div></div>
+  <div class="heading-actions"><a class="btn btn-outline-secondary" href="{% url 'service_edit' service.pk %}"><i data-lucide="pencil" aria-hidden="true"></i>Editar</a><a class="btn btn-outline-danger" href="{% url 'service_delete' service.pk %}"><i data-lucide="trash-2" aria-hidden="true"></i>Excluir</a></div></div>
+<dl class="detail-grid">
+  <div><dt>Data</dt><dd>{{ service.date|date:'d/m/Y'|default:'Não informada' }}</dd></div>
+  <div><dt>Quilometragem</dt><dd>{% if service.kilometers is not None %}{{ service.kilometers|intcomma }} km{% if service.odometer_reading_id %}<span class="dd-note">Também no histórico de km</span>{% endif %}{% else %}Não informada{% endif %}</dd></div>
+  <div><dt>Valor total</dt><dd>{{ service.total_cost|brl }}{% if service.parts_cost is not None or service.labor_cost is not None %}<span class="dd-note">Peças {{ service.parts_cost|brl }} · Mão de obra {{ service.labor_cost|brl }}</span>{% endif %}</dd></div>
+  <div><dt>Oficina ou profissional</dt><dd>{{ service.workshop|default:'Não informada' }}</dd></div>
+  {% if service.warranty_notes %}<div><dt>Condições da garantia</dt><dd>{{ service.warranty_notes }}</dd></div>{% endif %}
+  <div><dt>Veículo</dt><dd>{{ vehicle }}</dd></div>
+</dl>
+{% if parts %}<section class="detail-section"><h2>Peças substituídas</h2><ul class="parts-list">{% for part in parts %}<li><strong>{{ part.name }}</strong>{% if part.brand_model %}<span>{{ part.brand_model }}</span>{% endif %}</li>{% endfor %}</ul></section>{% endif %}
+{% if service.description %}<section class="detail-section"><h2>Descrição</h2><div class="prose">{{ service.description|linebreaks }}</div></section>{% endif %}
+{% if service.notes %}<section class="detail-section"><h2>Observações</h2><div class="prose">{{ service.notes|linebreaks }}</div></section>{% endif %}
+{% if resolved_problems %}<section class="detail-section"><h2>Problemas resolvidos por este serviço</h2><ul class="record-list compact">{% for problem in resolved_problems %}{% include 'maintenance/partials/problem_item.html' %}{% endfor %}</ul></section>{% endif %}
+{% url 'service_attachment_upload' service.pk as upload_url %}{% include 'maintenance/partials/attachments.html' %}
+{% endblock %}

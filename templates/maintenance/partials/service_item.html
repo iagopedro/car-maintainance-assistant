@@ -1,0 +1,5 @@
+{% load humanize maintenance_tags %}<li><a class="record-item" href="{% url 'service_detail' service.pk %}">
+  <span class="record-icon"><i data-lucide="{{ service.category|category_icon }}" aria-hidden="true"></i></span>
+  <span class="record-main"><strong>{{ service.display_title }}</strong><span>{% if service.date %}{{ service.date|date:'d/m/Y' }}{% else %}Data desconhecida{% endif %}{% if service.kilometers is not None %} · {{ service.kilometers|intcomma }} km{% endif %}{% if service.workshop %} · {{ service.workshop }}{% endif %}</span></span>
+  <span class="record-side">{% if service.total_cost is not None %}<strong>{{ service.total_cost|brl }}</strong>{% endif %}{% if service.warranty_active %}<span class="tag">Em garantia</span>{% endif %}</span>
+</a></li>

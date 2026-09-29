@@ -1,0 +1,5 @@
+{% load humanize maintenance_tags %}<li><a class="record-item" href="{% url 'problem_detail' problem.pk %}">
+  <span class="record-icon problem-icon"><i data-lucide="{{ problem.symptom|symptom_icon }}" aria-hidden="true"></i></span>
+  <span class="record-main"><strong>{{ problem.display_title }}</strong><span>{% if problem.reported_on %}{{ problem.reported_on|date:'d/m/Y' }}{% else %}Data desconhecida{% endif %}{% if problem.kilometers is not None %} · {{ problem.kilometers|intcomma }} km{% endif %}</span></span>
+  <span class="record-side"><span class="status status-{{ problem.status }}">{{ problem.get_status_display }}</span>{% if problem.is_active and problem.severity == 'high' %}<span class="tag tag-alert">Gravidade alta</span>{% endif %}</span>
+</a></li>

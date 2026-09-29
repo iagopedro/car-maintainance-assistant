@@ -1,0 +1,12 @@
+{% load maintenance_tags %}
+<div id="service-results" aria-live="polite">
+{% if filter_form.errors %}<div class="notice notice-error" role="alert">{% for error in filter_form.non_field_errors %}{{ error }} {% endfor %}{% for field in filter_form %}{% for error in field.errors %}{{ field.label }}: {{ error }} {% endfor %}{% endfor %}</div>{% endif %}
+{% if page_obj.paginator.count %}
+<div class="results-summary"><span>{{ page_obj.paginator.count }} serviço{{ page_obj.paginator.count|pluralize }}</span><span>Total registrado: <strong>{{ totals.total|brl }}</strong>{% if totals.unpriced %} · {{ totals.unpriced }} sem valor{% endif %}</span></div>
+<ul class="record-list">{% for service in page_obj %}{% include 'maintenance/partials/service_item.html' %}{% endfor %}</ul>
+{% include 'partials/pagination.html' %}
+{% else %}
+<section class="inline-empty"><i data-lucide="wrench" aria-hidden="true"></i><h2>{% if request.GET.q or request.GET.category or request.GET.start or request.GET.end %}Nenhum serviço encontrado{% else %}Nenhum serviço registrado{% endif %}</h2>
+  {% if not request.GET.q and not request.GET.category and not request.GET.start and not request.GET.end %}<p class="muted">Só a categoria é obrigatória. O resto pode ser completado depois.</p><a class="btn btn-primary" href="{% url 'service_create' %}">Registrar serviço</a>{% endif %}</section>
+{% endif %}
+</div>

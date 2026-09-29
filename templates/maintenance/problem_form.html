@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}{% if creating %}Relatar problema{% else %}Editar problema{% endif %}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% if creating %}{% url 'problem_list' %}{% else %}{% url 'problem_detail' problem.pk %}{% endif %}"><i data-lucide="arrow-left" aria-hidden="true"></i>{% if creating %}Problemas{% else %}{{ problem.display_title }}{% endif %}</a>
+<div class="page-heading"><div><p class="eyebrow">{{ vehicle|upper }}</p><h1>{% if creating %}Relatar problema{% else %}Editar problema{% endif %}</h1><p class="lead-text">Descreva o que percebeu. Não é preciso saber a causa.</p></div></div>
+{% if creating and request.GET.modelo == 'agua-porta' %}<div class="notice notice-info" role="note"><i data-lucide="info" aria-hidden="true"></i><span>Preenchido com o seu relato do caso da porta traseira. Confira o texto e informe a data e a quilometragem, se lembrar.</span></div>{% endif %}
+<form method="post" enctype="multipart/form-data" class="editor-form quick-form">{% csrf_token %}
+  {% if form.non_field_errors %}<div class="notice notice-error" role="alert">{% for error in form.non_field_errors %}{{ error }} {% endfor %}</div>{% endif %}
+  {% include 'partials/field.html' with field=form.symptom %}
+  {% include 'partials/field.html' with field=form.description %}
+  <div class="form-grid">
+    {% include 'partials/field.html' with field=form.reported_on %}
+    {% include 'partials/field.html' with field=form.kilometers %}
+    {% include 'partials/field.html' with field=form.location %}
+    {% include 'partials/field.html' with field=form.attachments %}
+  </div>
+  {% include 'partials/field.html' with field=form.severity %}
+  <details class="more-details" {% if form.details_have_content %}open{% endif %}>
+    <summary><span>Diagnóstico e solução</span><span class="summary-hint">Situação, causas descartadas e o que resolveu</span></summary>
+    <div class="details-body">
+      <div class="form-grid">
+        {% include 'partials/field.html' with field=form.status %}
+        {% include 'partials/field.html' with field=form.category %}
+        {% include 'partials/field.html' with field=form.title %}
+        {% include 'partials/field.html' with field=form.resolved_on %}
+      </div>
+      {% include 'partials/field.html' with field=form.diagnosis %}
+      {% include 'partials/field.html' with field=form.ruled_out %}
+      {% include 'partials/field.html' with field=form.solution %}
+      {% include 'partials/field.html' with field=form.resolved_by_service %}
+    </div>
+  </details>
+  <datalist id="location-suggestions">{% for suggestion in location_suggestions %}<option value="{{ suggestion }}"></option>{% endfor %}</datalist>
+  <div class="form-actions sticky-actions"><a class="btn btn-outline-secondary" href="{% if creating %}{% url 'problem_list' %}{% else %}{% url 'problem_detail' problem.pk %}{% endif %}">Cancelar</a><button class="btn btn-primary" type="submit"><i data-lucide="check" aria-hidden="true"></i>Salvar problema</button></div>
+</form>
+{% endblock %}
