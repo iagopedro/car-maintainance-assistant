@@ -25,7 +25,7 @@ Antes de alterar regras, testes ou anexos, leia [docs/licoes-aprendidas.md](docs
 - Anexos privados (JPG, PNG, WEBP, HEIC, PDF, ate 10 MB, 10 por envio): tipo verificado pelo conteudo, nome aleatorio em `media/`, acesso somente pelo dono.
 - Listas com busca, filtro por categoria/periodo, total registrado e abas de situacao para problemas. Exclusao com confirmacao.
 
-Nao implementados ainda: linha do tempo unificada, relatorios financeiros, exportacao, backup automatizado, notificacoes fora do aplicativo e assistente de sintomas. As pendencias do painel sao cadastrais, nao diagnosticos mecanicos. Leituras manuais sao somente adicionadas e consultadas; edicao auditada e troca de odometro exigem uma evolucao especifica. Fotos nao tem metadados (como localizacao) removidos.
+Nao implementados ainda: notificacoes fora do aplicativo e assistente de sintomas. As pendencias do painel sao cadastrais, nao diagnosticos mecanicos. Leituras manuais sao somente adicionadas e consultadas; edicao auditada e troca de odometro exigem uma evolucao especifica. Fotos nao tem metadados (como localizacao) removidos.
 
 ## Incremento 3
 
@@ -36,6 +36,23 @@ Nao implementados ainda: linha do tempo unificada, relatorios financeiros, expor
 - **Alertas** (`/alertas/`, sino no cabecalho e painel): itens atrasados ou chegando, itens sem referencia (agrupados), itens de diagnostico, programacao vencida, quilometragem desatualizada, problemas de gravidade alta ou sem acompanhamento, sintomas recorrentes e garantias terminando. Cada alerta explica o motivo, sem afirmar defeito.
 - **Preferencias** (`/alertas/configurar/`): antecedencia em km e dias, lembrete de atualizar o km e prioridades exibidas. Os valores padrao (1.000 km, 30 dias) sao apenas antecedencia de aviso, nao intervalos de manutencao.
 - No celular, a barra inferior passa a ter Inicio, Plano, Registrar, Servicos e Problemas; a Garagem fica no icone do cabecalho. A barra inferior e usada ate 1000 px de largura.
+
+## Incremento 4
+
+- **Linha do tempo** (`/historico/`): servicos, pecas trocadas, relatos e acompanhamento de problemas e leituras manuais de km, agrupados por mes, com "Pela frente" (proximos itens do plano). Filtros por tipo, categoria, situacao (preventiva, corretiva, inspecao, problema aberto ou resolvido) e periodo.
+- **Financas** (`/financas/`): gasto no periodo (12 meses, por ano ou tudo), media mensal, custo por km (12 meses, pelas leituras), total acumulado, preventiva x corretiva, por categoria, grafico por mes/ano e previsao para 12 meses a partir do plano (itens por km usam a media de km por dia das leituras). Servicos sem valor ficam fora dos totais e sao contados a parte.
+- **Seus dados** (`/dados/`): planilhas CSV (servicos, problemas, quilometragem, plano) prontas para Excel em portugues, com protecao contra injecao de formulas; backup completo (.zip com dados e anexos) e restauracao.
+- A restauracao so e aceita em conta **sem veiculos** (instalacao nova), para nunca misturar ou sobrescrever dados. O arquivo e validado (formato, versao, itens permitidos, tamanhos, hash e tipo dos anexos) e qualquer erro desfaz tudo.
+- Alerta de prioridade baixa quando ha dados e nenhum backup nos ultimos 30 dias.
+- Navegacao: Historico e Financas no menu superior; menu "Mais opcoes" (icone no cabecalho) com Linha do tempo, Financas, Garagem, Seus dados, Configurar alertas e Alterar senha. A barra inferior e usada ate 1100 px.
+
+### Backup agendado (opcional)
+
+```powershell
+.\.venv\Scripts\python.exe manage.py export_backup --username SEU_USUARIO --output D:\backups-rodagem
+```
+
+Pode ser agendado no Agendador de Tarefas do Windows. A pasta `backups/` (padrao) esta fora do versionamento. Guarde copias fora do computador. Para restaurar: nova instalacao, crie a conta, abra **Seus dados > Restaurar backup** antes de cadastrar veiculos. A senha nao faz parte do backup.
 
 ## Executar no Windows
 
@@ -70,7 +87,7 @@ Pare o servidor com Ctrl+C. Se a porta estiver ocupada, utilize outra, por exemp
 ## Testar
 
 ```powershell
-.\.venv\Scripts\python.exe manage.py test garage maintenance planning
+.\.venv\Scripts\python.exe manage.py test garage maintenance planning reports
 .\.venv\Scripts\python.exe manage.py check
 .\.venv\Scripts\python.exe manage.py makemigrations --check --dry-run
 ```
@@ -93,6 +110,8 @@ O banco fica em `db.sqlite3`, os anexos em `media/` e a chave local gerada autom
 
 Enquanto o backup automatizado nao existe, pare todos os processos do aplicativo antes de copiar o banco e as pastas `media` e `.local` para um local protegido. Restaure apenas com o aplicativo parado e usando uma versao compativel do projeto. A restauracao manual ainda nao integra a suite automatizada. CSV nao substituira backup.
 
+Desde o incremento 4, prefira o backup .zip de **Seus dados** (ou `manage.py export_backup`): ele pode ser restaurado pela interface e e testado automaticamente (ida e volta completa). A copia manual acima continua valida para migrar a instalacao inteira, incluindo a conta.
+
 Para recuperar acesso, execute localmente e digite a nova senha no terminal, nunca no chat:
 
 ```powershell
@@ -103,7 +122,7 @@ O bloqueio por falhas expira apos 15 minutos. Placas, observacoes, servicos, pro
 
 ## Arquitetura e evolucao
 
-Monolito modular Django 5.2 LTS, SQLite, templates, Bootstrap e HTMX. `garage` cuida de veiculos e odometro; `maintenance` cuida de servicos, pecas, problemas, acompanhamento e anexos; `planning` cuida do plano, sugestoes e alertas. As regras de vencimento ficam em `planning/rules.py` (funcoes puras) e os alertas em `planning/alerts.py`, calculados a cada requisicao a partir dos dados, sem tabela de alertas. Regras ficam nos modelos e em `services.py` (transacoes); as views sempre filtram pelo proprietario. A quilometragem atual e derivada da ultima leitura cronologica, sem coluna duplicada que possa divergir. Uma leitura por veiculo por dia e uma restricao deliberada.
+Monolito modular Django 5.2 LTS, SQLite, templates, Bootstrap e HTMX. `garage` cuida de veiculos e odometro; `maintenance` cuida de servicos, pecas, problemas, acompanhamento e anexos; `planning` cuida do plano, sugestoes e alertas; `reports` cuida da linha do tempo, financas, CSV e backup. As regras de vencimento ficam em `planning/rules.py` (funcoes puras) e os alertas em `planning/alerts.py`, calculados a cada requisicao a partir dos dados, sem tabela de alertas. Regras ficam nos modelos e em `services.py` (transacoes); as views sempre filtram pelo proprietario. A quilometragem atual e derivada da ultima leitura cronologica, sem coluna duplicada que possa divergir. Uma leitura por veiculo por dia e uma restricao deliberada.
 
 Fontes tecnicas e regras preventivas terao modelos proprios nos incrementos seguintes. A classificacao preventiva/corretiva dos servicos sera a base da comparacao financeira. Nao ha intervalos de manutencao presumidos. A validacao de motor, versao e manual sera obrigatoria antes de aplicar recomendacoes de fabricante.
 

@@ -46,11 +46,24 @@ Registro do que já custou tempo nos incrementos 1 e 2. Leia antes de mudar regr
 - Itens sem referência viram **um** alerta agrupado de prioridade baixa, para não poluir a lista após adicionar sugestões.
 - Mensagens de alerta explicam o motivo e evitam "defeito"; há teste para isso.
 
+## Histórico, finanças e backup
+
+- A linha do tempo é montada em Python a partir das tabelas (sem tabela própria). Leituras criadas por serviços (origem `service`) ficam de fora para não duplicar o serviço.
+- Totais usam apenas serviços com valor; os sem valor são contados à parte. Serviços sem data só entram em "Todo o período".
+- A previsão por km usa a média de km/dia das leituras (mínimo de 30 dias entre a primeira e a última); sem isso, só itens com data entram.
+- CSV: separador `;`, vírgula decimal e BOM UTF-8 (Excel pt-BR). Células que começam com `= + - @` recebem `'` (injeção de fórmulas).
+- Backup: somente dados do dono, com campos listados explicitamente em `reports/backup.py` (`SECTIONS`). Ao criar campo novo em modelo exportado, **adicione-o em `SECTIONS`** e no teste de ida e volta; se o formato mudar de forma incompatível, suba `VERSION`.
+- Restauração trata o zip como não confiável: lista fechada de nomes, limites de tamanho lidos de verdade (não só do cabeçalho), hash e tipo real dos anexos, `full_clean` em cada registro, transação única e remoção dos arquivos gravados se algo falhar. Nunca extrair pelo nome que vem no zip.
+- A restauração só é permitida em conta sem veículos; mesclar backups exigiria resolver conflitos e não vale a complexidade.
+
 ## Interface
 
-- A navegação inferior é usada até 1000 px: com 5 itens no menu superior, larguras entre 700 e 1000 px transbordavam. Teste 800 e 1024 px ao mexer no cabeçalho.
+- Menu superior com 6 itens: ícones ocultos até 1440 px, espaçamento compacto até 1300 px e barra inferior até 1100 px. Ao adicionar itens, teste 1024, 1180, 1280 e 1440 px.
+- Links repetidos na página (ex.: "Serviços" na barra inferior e na lista de CSV) quebram seletores como `.last`; restrinja pelo contêiner (`.csv-links`).
+- Gráficos com rolagem horizontal começam no fim (`scrollLeft = scrollWidth`) para mostrar os meses recentes no celular.
+- O cabeçalho já transbordou duas vezes ao ganhar itens (700–1000 px com 5 itens; 1100–1440 px com 6). Sempre rode a jornada de navegador com as larguras acima.
 - Regra base declarada **depois** de um media query com a mesma especificidade anula o media query (aconteceu com `.mobile-only`). Aumente a especificidade ou declare a base antes.
-- No celular, a Garagem está no ícone do cabeçalho; o link "Garagem" também existe como link de voltar em páginas de veículo. Nos testes, restrinja o seletor (`.account-nav`, `.bottom-nav`).
+- Garagem, Seus dados e Alterar senha ficam no menu "Mais opções" (ícone no cabeçalho). O link "Garagem" também existe como link de voltar em páginas de veículo; nos testes, restrinja o seletor.
 
 ## Django
 
@@ -67,7 +80,7 @@ Registro do que já custou tempo nos incrementos 1 e 2. Leia antes de mudar regr
 
 ## Testes
 
-- Unitários/HTTP: `manage.py test garage maintenance planning`. Anexos usam `MEDIA_ROOT` temporário (`MediaTestCase`).
+- Unitários/HTTP: `manage.py test garage maintenance planning reports`. Anexos usam `MEDIA_ROOT` temporário (`MediaTestCase`).
 - Em helpers de teste, não use nomes de parâmetro que colidam com campos enviados via `**fields` (ex.: `plan`), senão dá `TypeError: got multiple values`.
 - Navegador: `RUN_BROWSER_TESTS=1` + `manage.py test garage.test_browser`; usa banco temporário, nunca o `db.sqlite3` pessoal.
 - **Playwright síncrono roda dentro de um loop asyncio**: consultar o ORM dentro de `with sync_playwright()` gera `SynchronousOnlyOperation`. Crie dados antes do bloco e obtenha ids pela interface (`page.url`, links).
