@@ -85,13 +85,13 @@ class BrowserJourneyTests(StaticLiveServerTestCase):
             page.set_viewport_size({"width": 390, "height": 844})
             page.goto(self.live_server_url)
             page.screenshot(path=str(artifacts / "dashboard-mobile.png"), full_page=True, animations="disabled")
-            page.locator(".bottom-nav").get_by_role("link", name="Garagem").click()
+            page.locator(".account-nav").get_by_role("link", name="Garagem").click()
             page.get_by_role("link", name="Novo veículo").click()
             page.locator("#id_brand").fill("Toyota")
             page.locator("#id_model").fill("Etios")
             page.locator("#id_model_year").fill("2018")
             page.get_by_role("button", name="Cadastrar veículo").click()
-            page.locator(".bottom-nav").get_by_role("link", name="Garagem").click()
+            page.locator(".account-nav").get_by_role("link", name="Garagem").click()
             page.locator(".vehicle-card").filter(has_text="Exemplo Compacto").get_by_role("button", name="Usar no painel").click()
             expect(page.locator(".vehicle-overview")).to_contain_text("Exemplo Compacto")
             page.get_by_role("link", name="Alterar senha", exact=True).click()
@@ -205,6 +205,94 @@ class BrowserJourneyTests(StaticLiveServerTestCase):
             expect(page.get_by_text("Serviço excluído.")).to_be_visible()
             page.goto(self.live_server_url)
             expect(page.locator(".odometer-display")).to_contain_text("44.000")
+            self.assertEqual(errors, [])
+            self.assertEqual(failed_responses, [])
+            browser.close()
+
+    def test_plan_and_alerts_journey(self):
+        from playwright.sync_api import expect, sync_playwright
+
+        artifacts = Path("artifacts")
+        artifacts.mkdir(exist_ok=True)
+        password = "Plan-test-only-71925!"
+        owner = get_user_model().objects.create_user("plan-owner", password=password)
+        vehicle = Vehicle.objects.create(owner=owner, brand="Exemplo", model="Compacto", model_year=2022)
+        today = timezone.localdate()
+        OdometerReading.objects.create(vehicle=vehicle, date=today - timedelta(days=10), kilometers=44000)
+        errors, failed_responses = [], []
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch()
+            page = browser.new_page(viewport={"width": 390, "height": 844}, locale="pt-BR", is_mobile=True, has_touch=True)
+            page.on("pageerror", lambda error: errors.append(str(error)))
+            page.on("response", lambda response: failed_responses.append(response.url) if response.status >= 400 else None)
+            page.goto(self.live_server_url + "/conta/entrar/")
+            page.locator("#id_username").fill("plan-owner")
+            page.locator("#id_password").fill(password)
+            page.get_by_role("button", name="Entrar", exact=True).click()
+            expect(page.get_by_text("Monte seu plano de manutenção")).to_be_visible()
+
+            page.locator(".bottom-nav").get_by_role("link", name="Plano").click()
+            page.get_by_role("link", name="Ver sugestões").first.click()
+            for title in ("Troca de óleo e filtro de óleo", "Teste da bateria"):
+                page.locator(".suggestion-item").filter(has_text=title).locator("input").check()
+            page.get_by_role("button", name="Adicionar selecionados").click()
+            expect(page.get_by_text("2 itens adicionados")).to_be_visible()
+            expect(page.locator("#grupo-unknown .record-item")).to_have_count(2)
+
+            page.get_by_role("link", name="Troca de óleo e filtro de óleo").click()
+            expect(page.get_by_text("Recomendação do fabricante ainda não conferida")).to_be_visible()
+            page.get_by_role("link", name="Editar").click()
+            page.locator("#id_interval_km").fill("10000")
+            page.locator("#id_interval_months").fill("12")
+            page.locator("#id_source").fill("Manual do proprietário")
+            page.locator("#id_source_verified").check()
+            page.get_by_role("button", name="Salvar item").click()
+            expect(page.get_by_text("ainda não conferida")).to_have_count(0)
+            expect(page.locator(".due-box")).to_contain_text("Sem data ou km de referência")
+
+            page.get_by_role("link", name="Registrar última realização").click()
+            expect(page.locator("#id_title")).to_have_value("Troca de óleo e filtro de óleo")
+            page.locator("#id_date").fill((today - timedelta(days=60)).isoformat())
+            page.locator("#id_kilometers").fill("34500")
+            page.get_by_role("button", name="Salvar serviço").click()
+            expect(page.get_by_text("Item do plano")).to_be_visible()
+
+            page.locator(".bottom-nav").get_by_role("link", name="Início").click()
+            expect(page.locator(".alerts-section")).to_contain_text("Troca de óleo e filtro de óleo: está chegando")
+            expect(page.locator(".alerts-section")).to_contain_text("faltam 500 km")
+            expect(page.locator(".alert-button .badge-count")).to_be_visible()
+            page.screenshot(path=str(artifacts / "dashboard-alerts-mobile.png"), full_page=True, animations="disabled")
+
+            page.locator(".bottom-nav").get_by_role("link", name="Plano").click()
+            expect(page.locator("#grupo-soon")).to_contain_text("Troca de óleo")
+            page.screenshot(path=str(artifacts / "plan-list-mobile.png"), full_page=True, animations="disabled")
+            page.get_by_role("link", name="Teste da bateria").click()
+            page.get_by_text("Programar data na oficina").click()
+            page.locator("#id_scheduled_for").fill((today + timedelta(days=7)).isoformat())
+            page.get_by_role("button", name="Programar", exact=True).click()
+            expect(page.locator(".due-box")).to_contain_text("Programado para")
+            plan_path = urlparse(page.url).path
+            page.screenshot(path=str(artifacts / "plan-detail-mobile.png"), full_page=True, animations="disabled")
+
+            page.locator(".alert-button").click()
+            expect(page.locator(".alert-list")).to_contain_text("Troca de óleo")
+            page.get_by_role("link", name="Configurar").click()
+            page.locator("#id_show_medium").uncheck()
+            page.get_by_role("button", name="Salvar", exact=True).click()
+            expect(page.get_by_text("Preferências de alerta salvas.")).to_be_visible()
+            expect(page.get_by_text("Troca de óleo e filtro de óleo: está chegando")).to_have_count(0)
+
+            for width in (360, 800, 1024, 1280):
+                page.set_viewport_size({"width": width, "height": 800})
+                for path in ("/", "/plano/", "/plano/sugestoes/", "/plano/novo/", plan_path, f"{plan_path}editar/",
+                             "/alertas/", "/alertas/configurar/", "/servicos/", "/problemas/"):
+                    page.goto(self.live_server_url + path)
+                    with self.subTest(width=width, path=path):
+                        self.assertFalse(has_horizontal_overflow(page))
+                        expect(page.locator("h1")).to_be_visible()
+            page.set_viewport_size({"width": 1280, "height": 900})
+            page.goto(self.live_server_url + "/plano/")
+            page.screenshot(path=str(artifacts / "plan-list-desktop.png"), full_page=True, animations="disabled")
             self.assertEqual(errors, [])
             self.assertEqual(failed_responses, [])
             browser.close()
