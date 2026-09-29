@@ -36,6 +36,22 @@ Registro do que já custou tempo nos incrementos 1 e 2. Leia antes de mudar regr
 - Serviço com data e km cria/atualiza uma leitura com origem `service` (`maintenance.services.save_service`). Se já existir leitura manual no mesmo dia, ela é preservada e o serviço não cria outra. Excluir o serviço remove a leitura gerada por ele.
 - A origem `service` não aparece no formulário manual de leituras.
 
+## Plano e alertas
+
+- **Sugestões não têm intervalos.** Um teste impede números de km/meses/anos nos motivos do catálogo (`planning/catalog.py`). Itens do fabricante ficam "a validar" até fonte informada e confirmada.
+- A situação do item é derivada: próxima referência = último serviço ligado + intervalo (km ou meses, o que vier primeiro). Metas manuais (`next_km`/`next_date`) substituem o cálculo e são limpas quando um novo serviço é ligado a item recorrente.
+- Ao criar serviço a partir do plano, `form.initial["plan"]` já vem preenchido. Só trate como "plano anterior" na edição (`form.instance.pk`), senão o plano nunca é atualizado.
+- Item único realizado volta a pendente se o serviço for excluído ou desvinculado (`refresh_after_unlink`).
+- Alertas não são gravados: `planning_overview(request)` calcula uma vez por requisição e é compartilhado pelo painel, página de alertas e contador do sino (`SimpleLazyObject`, só calcula se o template usar).
+- Itens sem referência viram **um** alerta agrupado de prioridade baixa, para não poluir a lista após adicionar sugestões.
+- Mensagens de alerta explicam o motivo e evitam "defeito"; há teste para isso.
+
+## Interface
+
+- A navegação inferior é usada até 1000 px: com 5 itens no menu superior, larguras entre 700 e 1000 px transbordavam. Teste 800 e 1024 px ao mexer no cabeçalho.
+- Regra base declarada **depois** de um media query com a mesma especificidade anula o media query (aconteceu com `.mobile-only`). Aumente a especificidade ou declare a base antes.
+- No celular, a Garagem está no ícone do cabeçalho; o link "Garagem" também existe como link de voltar em páginas de veículo. Nos testes, restrinja o seletor (`.account-nav`, `.bottom-nav`).
+
 ## Django
 
 - **`TestCase` não executa `transaction.on_commit`.** Use `self.captureOnCommitCallbacks(execute=True)` para testar exclusão de arquivos.
@@ -51,7 +67,8 @@ Registro do que já custou tempo nos incrementos 1 e 2. Leia antes de mudar regr
 
 ## Testes
 
-- Unitários/HTTP: `manage.py test garage maintenance`. Anexos usam `MEDIA_ROOT` temporário (`MediaTestCase`).
+- Unitários/HTTP: `manage.py test garage maintenance planning`. Anexos usam `MEDIA_ROOT` temporário (`MediaTestCase`).
+- Em helpers de teste, não use nomes de parâmetro que colidam com campos enviados via `**fields` (ex.: `plan`), senão dá `TypeError: got multiple values`.
 - Navegador: `RUN_BROWSER_TESTS=1` + `manage.py test garage.test_browser`; usa banco temporário, nunca o `db.sqlite3` pessoal.
 - **Playwright síncrono roda dentro de um loop asyncio**: consultar o ORM dentro de `with sync_playwright()` gera `SynchronousOnlyOperation`. Crie dados antes do bloco e obtenha ids pela interface (`page.url`, links).
 - Capturas com `animations="disabled"`; sem isso a animação de entrada aparece esmaecida.

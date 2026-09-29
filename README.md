@@ -25,7 +25,17 @@ Antes de alterar regras, testes ou anexos, leia [docs/licoes-aprendidas.md](docs
 - Anexos privados (JPG, PNG, WEBP, HEIC, PDF, ate 10 MB, 10 por envio): tipo verificado pelo conteudo, nome aleatorio em `media/`, acesso somente pelo dono.
 - Listas com busca, filtro por categoria/periodo, total registrado e abas de situacao para problemas. Exclusao com confirmacao.
 
-Nao implementados ainda: planejamento, intervalos do fabricante, alertas de manutencao, linha do tempo unificada, relatorios financeiros, exportacao e backup automatizado. As pendencias do painel sao cadastrais, nao diagnosticos mecanicos. Leituras manuais sao somente adicionadas e consultadas; edicao auditada e troca de odometro exigem uma evolucao especifica. Fotos nao tem metadados (como localizacao) removidos.
+Nao implementados ainda: linha do tempo unificada, relatorios financeiros, exportacao, backup automatizado, notificacoes fora do aplicativo e assistente de sintomas. As pendencias do painel sao cadastrais, nao diagnosticos mecanicos. Leituras manuais sao somente adicionadas e consultadas; edicao auditada e troca de odometro exigem uma evolucao especifica. Fotos nao tem metadados (como localizacao) removidos.
+
+## Incremento 3
+
+- **Plano de manutencao** (`/plano/`): itens com tipo (recomendacao do fabricante, preventiva pelo uso, inspecao sugerida, diagnostico profissional), prioridade, motivo, custo estimado e fonte.
+- Repeticao por km e/ou meses (vale o que ocorrer primeiro) ou apenas proxima data/km. A proxima referencia e calculada a partir do ultimo servico ligado ao item.
+- Situacoes: passou da referencia, chegando, atualize o km, sem referencia, programado, em dia, realizado e descartado. Acoes: registrar realizacao (abre o formulario de servico ja preenchido), programar data, vincular servico ja registrado, descartar com motivo e reativar.
+- **Sugestoes** (`/plano/sugestoes/`): 16 itens comuns **sem intervalos**. Recomendacoes do fabricante ficam marcadas "a validar no manual" ate voce informar a fonte e confirmar.
+- **Alertas** (`/alertas/`, sino no cabecalho e painel): itens atrasados ou chegando, itens sem referencia (agrupados), itens de diagnostico, programacao vencida, quilometragem desatualizada, problemas de gravidade alta ou sem acompanhamento, sintomas recorrentes e garantias terminando. Cada alerta explica o motivo, sem afirmar defeito.
+- **Preferencias** (`/alertas/configurar/`): antecedencia em km e dias, lembrete de atualizar o km e prioridades exibidas. Os valores padrao (1.000 km, 30 dias) sao apenas antecedencia de aviso, nao intervalos de manutencao.
+- No celular, a barra inferior passa a ter Inicio, Plano, Registrar, Servicos e Problemas; a Garagem fica no icone do cabecalho. A barra inferior e usada ate 1000 px de largura.
 
 ## Executar no Windows
 
@@ -60,7 +70,7 @@ Pare o servidor com Ctrl+C. Se a porta estiver ocupada, utilize outra, por exemp
 ## Testar
 
 ```powershell
-.\.venv\Scripts\python.exe manage.py test garage maintenance
+.\.venv\Scripts\python.exe manage.py test garage maintenance planning
 .\.venv\Scripts\python.exe manage.py check
 .\.venv\Scripts\python.exe manage.py makemigrations --check --dry-run
 ```
@@ -75,7 +85,7 @@ $env:RUN_BROWSER_TESTS = '1'
 Remove-Item Env:RUN_BROWSER_TESTS
 ```
 
-Capturas de tela ficam em `artifacts/`, fora do versionamento. A primeira jornada cobre criacao da conta, Compacto, edicao, leitura retroativa, filtros HTMX, rejeicao de inconsistencia, segundo veiculo, troca de veiculo ativo, troca de senha e login. A segunda, em celular, cobre registro de servico com pecas e anexos, caso da porta traseira, problema com acompanhamento ate a resolucao, filtro de servicos e exclusao. Ambas verificam larguras de 360, 390 e 1280/1440 pixels.
+Capturas de tela ficam em `artifacts/`, fora do versionamento. A primeira jornada cobre criacao da conta, Compacto, edicao, leitura retroativa, filtros HTMX, rejeicao de inconsistencia, segundo veiculo, troca de veiculo ativo, troca de senha e login. A segunda, em celular, cobre registro de servico com pecas e anexos, caso da porta traseira, problema com acompanhamento ate a resolucao, filtro de servicos e exclusao. A terceira cobre sugestoes do plano, validacao da fonte, registro da ultima realizacao, alertas no painel, programacao e preferencias de alerta, com larguras de 360, 800, 1024 e 1280 pixels. As demais verificam 360, 390 e 1280/1440 pixels.
 
 ## Dados e recuperacao
 
@@ -93,7 +103,7 @@ O bloqueio por falhas expira apos 15 minutos. Placas, observacoes, servicos, pro
 
 ## Arquitetura e evolucao
 
-Monolito modular Django 5.2 LTS, SQLite, templates, Bootstrap e HTMX. `garage` cuida de veiculos e odometro; `maintenance` cuida de servicos, pecas, problemas, acompanhamento e anexos. Regras ficam nos modelos e em `services.py` (transacoes); as views sempre filtram pelo proprietario. A quilometragem atual e derivada da ultima leitura cronologica, sem coluna duplicada que possa divergir. Uma leitura por veiculo por dia e uma restricao deliberada.
+Monolito modular Django 5.2 LTS, SQLite, templates, Bootstrap e HTMX. `garage` cuida de veiculos e odometro; `maintenance` cuida de servicos, pecas, problemas, acompanhamento e anexos; `planning` cuida do plano, sugestoes e alertas. As regras de vencimento ficam em `planning/rules.py` (funcoes puras) e os alertas em `planning/alerts.py`, calculados a cada requisicao a partir dos dados, sem tabela de alertas. Regras ficam nos modelos e em `services.py` (transacoes); as views sempre filtram pelo proprietario. A quilometragem atual e derivada da ultima leitura cronologica, sem coluna duplicada que possa divergir. Uma leitura por veiculo por dia e uma restricao deliberada.
 
 Fontes tecnicas e regras preventivas terao modelos proprios nos incrementos seguintes. A classificacao preventiva/corretiva dos servicos sera a base da comparacao financeira. Nao ha intervalos de manutencao presumidos. A validacao de motor, versao e manual sera obrigatoria antes de aplicar recomendacoes de fabricante.
 
