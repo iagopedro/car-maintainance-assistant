@@ -1,5 +1,6 @@
 import os
 from datetime import timedelta
+from decimal import Decimal
 from pathlib import Path
 from unittest import skipUnless
 from urllib.parse import urlparse
@@ -85,16 +86,19 @@ class BrowserJourneyTests(StaticLiveServerTestCase):
             page.set_viewport_size({"width": 390, "height": 844})
             page.goto(self.live_server_url)
             page.screenshot(path=str(artifacts / "dashboard-mobile.png"), full_page=True, animations="disabled")
-            page.locator(".account-nav").get_by_role("link", name="Garagem").click()
+            page.get_by_role("link", name="Mais opções").click()
+            page.get_by_role("link", name="Garagem").click()
             page.get_by_role("link", name="Novo veículo").click()
             page.locator("#id_brand").fill("Toyota")
             page.locator("#id_model").fill("Etios")
             page.locator("#id_model_year").fill("2018")
             page.get_by_role("button", name="Cadastrar veículo").click()
-            page.locator(".account-nav").get_by_role("link", name="Garagem").click()
+            page.get_by_role("link", name="Mais opções").click()
+            page.get_by_role("link", name="Garagem").click()
             page.locator(".vehicle-card").filter(has_text="Exemplo Compacto").get_by_role("button", name="Usar no painel").click()
             expect(page.locator(".vehicle-overview")).to_contain_text("Exemplo Compacto")
-            page.get_by_role("link", name="Alterar senha", exact=True).click()
+            page.get_by_role("link", name="Mais opções").click()
+            page.get_by_role("link", name="Alterar senha").click()
             page.locator("#id_old_password").fill("Browser-test-only-83746!")
             page.locator("#id_new_password1").fill("Changed-browser-only-64937!")
             page.locator("#id_new_password2").fill("Changed-browser-only-64937!")
@@ -293,6 +297,102 @@ class BrowserJourneyTests(StaticLiveServerTestCase):
             page.set_viewport_size({"width": 1280, "height": 900})
             page.goto(self.live_server_url + "/plano/")
             page.screenshot(path=str(artifacts / "plan-list-desktop.png"), full_page=True, animations="disabled")
+            self.assertEqual(errors, [])
+            self.assertEqual(failed_responses, [])
+            browser.close()
+
+    def test_history_finance_and_data_journey(self):
+        from playwright.sync_api import expect, sync_playwright
+
+        from maintenance.models import Problem, ServiceRecord
+        from planning.models import MaintenancePlan
+
+        artifacts = Path("artifacts")
+        artifacts.mkdir(exist_ok=True)
+        today = timezone.localdate()
+        password = "Data-test-only-40517!"
+        user_model = get_user_model()
+        owner = user_model.objects.create_user("data-owner", password=password)
+        user_model.objects.create_user("new-install", password=password)
+        vehicle = Vehicle.objects.create(owner=owner, brand="Exemplo", model="Compacto", model_year=2022)
+        OdometerReading.objects.create(vehicle=vehicle, date=today - timedelta(days=90), kilometers=40000)
+        OdometerReading.objects.create(vehicle=vehicle, date=today - timedelta(days=1), kilometers=43000)
+        ServiceRecord.objects.create(vehicle=vehicle, category="oil", kind="preventive", title="Troca de óleo",
+                                     date=today - timedelta(days=20), total_cost=Decimal("189.90"))
+        ServiceRecord.objects.create(vehicle=vehicle, category="suspension", kind="corrective", title="Bieleta",
+                                     date=today - timedelta(days=50), total_cost=Decimal("320"))
+        Problem.objects.create(vehicle=vehicle, symptom="noise", description="Estalo na suspensão",
+                               reported_on=today - timedelta(days=60), status="resolved")
+        MaintenancePlan.objects.create(vehicle=vehicle, title="Fluido de freio", next_date=today + timedelta(days=40),
+                                       estimated_cost=Decimal("150"))
+        errors, failed_responses = [], []
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch()
+            page = browser.new_page(viewport={"width": 390, "height": 844}, locale="pt-BR", is_mobile=True,
+                                    has_touch=True, accept_downloads=True)
+            page.on("pageerror", lambda error: errors.append(str(error)))
+            page.on("response", lambda response: failed_responses.append(response.url) if response.status >= 400 else None)
+
+            def login(username):
+                page.goto(self.live_server_url + "/conta/entrar/")
+                page.locator("#id_username").fill(username)
+                page.locator("#id_password").fill(password)
+                page.get_by_role("button", name="Entrar", exact=True).click()
+
+            login("data-owner")
+            expect(page.locator(".metrics-row")).to_contain_text("R$ 509,90")
+            page.get_by_role("link", name="Mais opções").click()
+            page.get_by_role("link", name="Linha do tempo").click()
+            expect(page.locator(".timeline-upcoming")).to_contain_text("Fluido de freio")
+            expect(page.locator(".tl-month .tl-item")).to_have_count(5)
+            page.locator("#id_type").select_option("services")
+            expect(page.locator(".tl-month .tl-item")).to_have_count(2)
+            expect(page.locator(".timeline-upcoming")).to_have_count(0)
+            self.assertIn("type=services", page.url)
+            page.screenshot(path=str(artifacts / "timeline-mobile.png"), full_page=True, animations="disabled")
+
+            page.get_by_role("link", name="Mais opções").click()
+            page.get_by_role("link", name="Finanças").click()
+            expect(page.locator(".finance-summary")).to_contain_text("R$ 509,90")
+            expect(page.locator(".forecast")).to_contain_text("R$ 150,00")
+            expect(page.locator(".bar-list").first).to_contain_text("Corretiva")
+            page.screenshot(path=str(artifacts / "finance-mobile.png"), full_page=True, animations="disabled")
+
+            page.get_by_role("link", name="Mais opções").click()
+            page.get_by_role("link", name="Seus dados").click()
+            with page.expect_download() as csv_info:
+                page.locator(".csv-links").get_by_role("link", name="Serviços").click()
+            csv_text = Path(csv_info.value.path()).read_text(encoding="utf-8")
+            self.assertTrue(csv_text.startswith("\ufeffVeículo;"))
+            self.assertIn("189,90", csv_text)
+            with page.expect_download() as backup_info:
+                page.get_by_role("button", name="Baixar backup").click()
+            backup_path = artifacts / "backup-e2e.zip"
+            backup_info.value.save_as(str(backup_path))
+
+            page.goto(self.live_server_url + "/mais/")
+            page.get_by_role("button", name="Sair").click()
+            login("new-install")
+            page.get_by_role("link", name="Restaurar seus dados").click()
+            page.locator("#id_backup").set_input_files(str(backup_path))
+            page.locator("#id_confirm").check()
+            page.get_by_role("button", name="Restaurar").click()
+            expect(page.get_by_text("Backup restaurado: 1 veículo(s), 2 serviço(s)")).to_be_visible()
+            expect(page.locator(".odometer-display")).to_contain_text("43.000")
+            page.get_by_role("link", name="Mais opções").click()
+            page.get_by_role("link", name="Seus dados").click()
+            expect(page.get_by_text("Disponível apenas em uma conta sem veículos")).to_be_visible()
+
+            for width in (360, 800, 1024, 1180, 1280, 1440):
+                page.set_viewport_size({"width": width, "height": 800})
+                for path in ("/", "/historico/", "/financas/", "/financas/?periodo=all", "/dados/", "/mais/", "/plano/"):
+                    page.goto(self.live_server_url + path)
+                    with self.subTest(width=width, path=path):
+                        self.assertFalse(has_horizontal_overflow(page))
+                        expect(page.locator("h1")).to_be_visible()
+            page.set_viewport_size({"width": 1280, "height": 900})
+            page.goto(self.live_server_url + "/financas/")
+            page.screenshot(path=str(artifacts / "finance-desktop.png"), full_page=True, animations="disabled")
             self.assertEqual(errors, [])
             self.assertEqual(failed_responses, [])
             browser.close()
