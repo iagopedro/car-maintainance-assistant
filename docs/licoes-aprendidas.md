@@ -1,0 +1,67 @@
+# Lições aprendidas
+
+Registro do que já custou tempo nos incrementos 1 e 2. Leia antes de mudar regras de quilometragem, anexos, formulários ou testes de navegador.
+
+## Ambiente (Windows)
+
+- Use sempre `.\.venv\Scripts\python.exe` (Python 3.13). O VS Code pode sugerir o Python global 3.14; não use.
+- No PowerShell, `Select-String` e `Get-NetTCPConnection` sem resultado devolvem código de saída 1. Leia a saída (`OK`, `Ran N tests`) antes de concluir que algo falhou.
+- Linhas `System.Management.Automation.RemoteException` e `AXES: ...` na saída dos testes são ruído de stderr, não erros.
+- Porta ocupada: verifique com `Get-NetTCPConnection -LocalPort 8000 -State Listen` antes de iniciar outro servidor.
+- O Windows bloqueia arquivos abertos. Exclusão de anexo com o arquivo ainda aberto gera `PermissionError`.
+- Git: `Rename from .git/index.lock ... failed. Should I try again? (y/n)` ocorre quando o VS Code lê o repositório ao mesmo tempo. Responda `y`; não apague o `index.lock` enquanto houver processo Git ativo. Faça commits um por comando, sem encadear vários, para o prompt não consumir o comando seguinte.
+- Identidade do Git somente com `git config --local`; nunca altere a configuração global.
+
+## Regras de domínio (não reabrir sem motivo)
+
+- **Não inventar intervalos de manutenção.** Recomendações do fabricante só entram com fonte validada (manual/versão).
+- **Desconhecido não é zero.** Quilometragem, data, custo e aquisição ausentes ficam `NULL` e aparecem como "não informado"/"data desconhecida".
+- **Atalhos só preenchem formulários.** Os atalhos do Compacto e do caso da água na porta não salvam nada sem confirmação.
+- **Caso da porta traseira:** ruído de líquido ao frear era água acumulada na porta, drenada ao desobstruir os drenos. Não é problema de combustível, bomba ou injeção. Está registrado como "causa descartada".
+- Gravidade de problema é **percebida pelo usuário**, não diagnóstico. Alertas não devem afirmar defeito.
+- Nenhuma exclusão de veículo pela interface (evita perda de histórico). Serviços e problemas podem ser excluídos com confirmação.
+
+## Quilometragem
+
+- A quilometragem atual é derivada da última leitura por data, sem campo duplicado no veículo.
+- Uma leitura por veículo por dia (restrição no banco).
+- `garage.models.odometer_conflict` compara apenas leituras de datas **estritamente anteriores e posteriores**; leituras do mesmo dia não são comparadas.
+- Serviço com data e km cria/atualiza uma leitura com origem `service` (`maintenance.services.save_service`). Se já existir leitura manual no mesmo dia, ela é preservada e o serviço não cria outra. Excluir o serviço remove a leitura gerada por ele.
+- A origem `service` não aparece no formulário manual de leituras.
+
+## Django
+
+- **`TestCase` não executa `transaction.on_commit`.** Use `self.captureOnCommitCallbacks(execute=True)` para testar exclusão de arquivos.
+- **Feche `FileResponse` nos testes** (`response.close()`) antes de excluir o arquivo; senão o Windows bloqueia.
+- A remoção de arquivos após commit tolera `OSError` e registra aviso; nunca deixe essa falha derrubar a requisição, porque o banco já foi alterado.
+- `RadioSelect.id_for_label` devolve vazio. Para ids de ajuda/erro use `field.auto_id` (em templates e no `StyledFormMixin`), o que também funciona com prefixos de formset.
+- `DecimalField` com `pt-br` não aceita `1.234,56` sem `USE_THOUSAND_SEPARATOR`. Use `MoneyField`/`normalize_money` em `maintenance/forms.py`.
+- Datas desconhecidas: ordenação com `F("date").desc(nulls_last=True)` em `Meta.ordering`.
+- Campo removido condicionalmente do formulário (ex.: `resolves` sem problemas em aberto) faz o Django **ignorar** valores injetados. Para testar a validação, crie o cenário em que o campo existe.
+- Alterar rótulos de `choices` gera migração `AlterField`; é esperado e não altera dados.
+- Respostas HTMX parciais: use `vary_on_headers("HX-Request")` e `historyCacheSize: 0` para o botão Voltar não exibir só o fragmento.
+- Rode sempre `manage.py makemigrations --check --dry-run` antes de commitar.
+
+## Testes
+
+- Unitários/HTTP: `manage.py test garage maintenance`. Anexos usam `MEDIA_ROOT` temporário (`MediaTestCase`).
+- Navegador: `RUN_BROWSER_TESTS=1` + `manage.py test garage.test_browser`; usa banco temporário, nunca o `db.sqlite3` pessoal.
+- **Playwright síncrono roda dentro de um loop asyncio**: consultar o ORM dentro de `with sync_playwright()` gera `SynchronousOnlyOperation`. Crie dados antes do bloco e obtenha ids pela interface (`page.url`, links).
+- Capturas com `animations="disabled"`; sem isso a animação de entrada aparece esmaecida.
+- Em captura `full_page`, a barra inferior fixa do celular aparece no meio da imagem. É artefato da captura, não bug.
+- No celular a navegação superior fica oculta; clique pela `.bottom-nav`.
+- `assertNotContains` com um rótulo que também existe nas opções de um `<select>` falha falsamente. Verifique textos exclusivos dos resultados.
+- Os testes cobrem, em larguras de 360, 390 e 1280/1440 px, rolagem horizontal, erros de JavaScript e respostas HTTP >= 400.
+
+## Segurança
+
+- Toda consulta de veículo, serviço, problema e anexo filtra pelo proprietário (`vehicle__owner=request.user`); outro dono recebe 404.
+- Anexos: tipo detectado pelo conteúdo (não pela extensão), nome aleatório, servidos apenas pela view autenticada com `Content-Security-Policy: sandbox`; PDF e HEIC são baixados, não exibidos.
+- `next` na troca de veículo passa por `url_has_allowed_host_and_scheme`.
+- A primeira conta só pode ser criada via localhost. Não há credenciais padrão; não crie usuários ou dados fictícios no banco pessoal.
+- Metadados de fotos (ex.: localização) ainda não são removidos.
+
+## Edição de código
+
+- Ao substituir um bloco que termina antes da próxima declaração (`class ...`), inclua a declaração inteira no trecho; uma troca já apagou a linha `class ReadingFilterForm` em `garage/forms.py`. Releia o arquivo após edições grandes.
+- Trechos de busca repetidos (ex.: comando `manage.py test garage`, que é prefixo de outro) fazem a substituição falhar; inclua contexto único.
