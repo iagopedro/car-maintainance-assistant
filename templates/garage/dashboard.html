@@ -13,8 +13,13 @@
 <section class="metrics-row" aria-label="Resumo dos registros">
   <a href="{% url 'service_list' %}"><i data-lucide="wrench" aria-hidden="true"></i><span>Serviços registrados</span><strong>{{ service_count }}</strong></a>
   <a href="{% url 'problem_list' %}"><i data-lucide="message-square-warning" aria-hidden="true"></i><span>Problemas em aberto</span><strong>{{ active_problem_count }}</strong></a>
-  <div><i data-lucide="shield-check" aria-hidden="true"></i><span>Serviços em garantia</span><strong>{{ warranty_count }}</strong></div>
+  <a href="{% url 'plan_list' %}"><i data-lucide="calendar-clock" aria-hidden="true"></i><span>Plano: próximos ou atrasados</span><strong>{{ plan_attention }}</strong></a>
   <a href="{% url 'reading_list' vehicle.pk %}"><i data-lucide="calendar-days" aria-hidden="true"></i><span>Desde a última leitura</span><strong>{% if reading_age is not None %}{{ reading_age }} <small>dia{{ reading_age|pluralize }}</small>{% else %}<small>Sem leitura</small>{% endif %}</strong></a>
+</section>
+<section class="alerts-section" aria-labelledby="alerts-title">
+  <div class="section-heading"><h2 id="alerts-title">Alertas</h2><a class="text-link" href="{% url 'alert_list' %}">{% if alerts|length > 3 %}Ver todos ({{ alerts|length }}){% else %}Configurar{% endif %}<i data-lucide="arrow-right" aria-hidden="true"></i></a></div>
+  {% if alerts %}<ul class="alert-list">{% for alert in alerts|slice:":3" %}{% include 'planning/partials/alert_item.html' %}{% endfor %}</ul>
+  {% else %}<p class="muted">Nenhum alerta no momento.{% if not plan_count %} <a href="{% url 'plan_list' %}">Monte seu plano de manutenção</a> para receber avisos.{% endif %}</p>{% endif %}
 </section>
 <div class="dashboard-columns">
   <section><div class="section-heading"><h2>Últimos serviços</h2><a class="text-link" href="{% url 'service_list' %}">Ver todos<i data-lucide="arrow-right" aria-hidden="true"></i></a></div>

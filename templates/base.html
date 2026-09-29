@@ -22,12 +22,15 @@
       {% if user.is_authenticated %}
       <nav class="main-nav" aria-label="Navegação principal">
         <a href="{% url 'dashboard' %}" {% if section == 'dashboard' %}aria-current="page"{% endif %}><i data-lucide="layout-dashboard" aria-hidden="true"></i>Visão geral</a>
+        <a href="{% url 'plan_list' %}" {% if section == 'plan' %}aria-current="page"{% endif %}><i data-lucide="calendar-clock" aria-hidden="true"></i>Plano</a>
         <a href="{% url 'service_list' %}" {% if section == 'services' %}aria-current="page"{% endif %}><i data-lucide="wrench" aria-hidden="true"></i>Serviços</a>
         <a href="{% url 'problem_list' %}" {% if section == 'problems' %}aria-current="page"{% endif %}><i data-lucide="message-square-warning" aria-hidden="true"></i>Problemas</a>
         <a href="{% url 'vehicle_list' %}" {% if section == 'garage' %}aria-current="page"{% endif %}><i data-lucide="car-front" aria-hidden="true"></i>Garagem</a>
       </nav>
       <div class="account-nav">
         <a class="btn btn-primary register-button" href="{% url 'register' %}"><i data-lucide="plus" aria-hidden="true"></i>Registrar</a>
+        <a class="icon-button alert-button" href="{% url 'alert_list' %}" title="Alertas" aria-label="Alertas{% if alert_count %}: {{ alert_count }}{% endif %}" {% if section == 'alerts' %}aria-current="page"{% endif %}><i data-lucide="bell" aria-hidden="true"></i>{% if alert_count %}<span class="badge-count" aria-hidden="true">{{ alert_count }}</span>{% endif %}</a>
+        <a class="icon-button mobile-only" href="{% url 'vehicle_list' %}" title="Garagem" aria-label="Garagem"><i data-lucide="car-front" aria-hidden="true"></i></a>
         <a class="icon-button" href="{% url 'password_change' %}" title="Alterar senha" aria-label="Alterar senha"><i data-lucide="user-round" aria-hidden="true"></i></a>
         <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="icon-button" type="submit" title="Sair" aria-label="Sair"><i data-lucide="log-out" aria-hidden="true"></i></button></form>
       </div>
@@ -42,10 +45,10 @@
   {% if user.is_authenticated %}
   <nav class="bottom-nav" aria-label="Navegação rápida">
     <a href="{% url 'dashboard' %}" {% if section == 'dashboard' %}aria-current="page"{% endif %}><i data-lucide="layout-dashboard" aria-hidden="true"></i>Início</a>
-    <a href="{% url 'service_list' %}" {% if section == 'services' %}aria-current="page"{% endif %}><i data-lucide="wrench" aria-hidden="true"></i>Serviços</a>
+    <a href="{% url 'plan_list' %}" {% if section == 'plan' %}aria-current="page"{% endif %}><i data-lucide="calendar-clock" aria-hidden="true"></i>Plano</a>
     <a class="bottom-register" href="{% url 'register' %}" {% if section == 'register' %}aria-current="page"{% endif %}><span><i data-lucide="plus" aria-hidden="true"></i></span>Registrar</a>
+    <a href="{% url 'service_list' %}" {% if section == 'services' %}aria-current="page"{% endif %}><i data-lucide="wrench" aria-hidden="true"></i>Serviços</a>
     <a href="{% url 'problem_list' %}" {% if section == 'problems' %}aria-current="page"{% endif %}><i data-lucide="message-square-warning" aria-hidden="true"></i>Problemas</a>
-    <a href="{% url 'vehicle_list' %}" {% if section == 'garage' %}aria-current="page"{% endif %}><i data-lucide="car-front" aria-hidden="true"></i>Garagem</a>
   </nav>
   {% endif %}
 </body>

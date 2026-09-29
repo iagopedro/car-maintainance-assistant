@@ -13,6 +13,7 @@ from django.views.decorators.vary import vary_on_headers
 from django.views.decorators.http import require_POST
 
 from maintenance.models import Problem
+from planning.alerts import planning_overview
 
 from .context import ACTIVE_VEHICLE_KEY, get_active_vehicle
 from .forms import LoginForm, ReadingFilterForm, ReadingForm, SetupForm, VehicleCreateForm, VehicleForm
@@ -63,11 +64,13 @@ def dashboard(request):
     latest = vehicle.latest_reading
     services = vehicle.services.all()
     active_problems = vehicle.problems.filter(status__in=Problem.ACTIVE_STATUSES)
+    _, plans, alerts = planning_overview(request)
     context = {
         "section": "dashboard", "vehicle": vehicle, "latest": latest,
         "recent_services": services[:4], "service_count": services.count(),
         "active_problems": active_problems[:4], "active_problem_count": active_problems.count(),
-        "warranty_count": services.filter(warranty_until__gte=today).count(),
+        "plan_attention": sum(1 for plan in plans if plan.due.state in ("overdue", "soon")),
+        "plan_count": len(plans), "alerts": alerts,
         "reading_age": (today - latest.date).days if latest else None,
     }
     return render(request, "garage/dashboard.html", context)
