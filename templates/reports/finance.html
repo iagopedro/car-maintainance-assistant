@@ -1,0 +1,45 @@
+{% extends 'base.html' %}{% load humanize maintenance_tags %}
+{% block title %}Finanças{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">{{ vehicle|upper }}</p><h1>Finanças</h1><p class="lead-text">Quanto o carro custou, com o quê e o que vem pela frente.</p></div>
+  <div class="heading-actions">{% include 'partials/vehicle_switcher.html' %}</div></div>
+<nav class="tabs" aria-label="Período">{% for key, label in choices %}<a href="?periodo={{ key }}" {% if key == period %}aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}</nav>
+<section class="finance-summary" aria-label="Resumo de {{ period_label }}">
+  <div><span>Gasto em {{ period_label|lower }}</span><strong>{{ summary.total|brl }}</strong><small>{{ summary.count }} serviço{{ summary.count|pluralize }}{% if summary.unpriced %} · {{ summary.unpriced }} sem valor{% endif %}</small></div>
+  {% if summary.monthly_average %}<div><span>Média mensal</span><strong>{{ summary.monthly_average|brl }}</strong><small>{% if period == '12m' %}Últimos 12 meses{% else %}Meses do período até hoje{% endif %}</small></div>{% endif %}
+  {% if summary.cost_per_km %}<div><span>Custo por km</span><strong>{{ summary.cost_per_km|brl }}</strong><small>Estimado pelas leituras de km</small></div>{% endif %}
+  <div><span>Total acumulado</span><strong>{{ summary.all_time|brl }}</strong><small>Todos os serviços com valor</small></div>
+</section>
+{% if summary.count %}
+<div class="finance-columns">
+  <section class="finance-block" aria-labelledby="kind-title">
+    <h2 id="kind-title">Preventiva x corretiva</h2>
+    <ul class="bar-list">{% for bar in summary.by_kind %}<li><div class="bar-label"><span>{{ bar.label }}</span><strong>{{ bar.total|brl }}</strong></div><div class="bar-track" aria-hidden="true"><span class="bar-fill kind-{{ bar.key }}" style="width: {{ bar.percent }}%"></span></div><small>{{ bar.count }} serviço{{ bar.count|pluralize }}</small></li>{% endfor %}</ul>
+    {% for bar in summary.by_kind %}{% if bar.key == 'unspecified' %}<p class="group-hint">Serviços "não classificados" podem ser ajustados editando o tipo em cada serviço.</p>{% endif %}{% endfor %}
+    {% if summary.parts is not None or summary.labor is not None %}<p class="group-hint">Com detalhamento: peças {{ summary.parts|brl }} · mão de obra {{ summary.labor|brl }}.</p>{% endif %}
+  </section>
+  <section class="finance-block" aria-labelledby="category-title">
+    <h2 id="category-title">Por categoria</h2>
+    <ul class="bar-list">{% for bar in summary.by_category %}<li><div class="bar-label"><span><i data-lucide="{{ bar.key|category_icon }}" aria-hidden="true"></i>{{ bar.label }}</span><strong>{{ bar.total|brl }}</strong></div><div class="bar-track" aria-hidden="true"><span class="bar-fill" style="width: {{ bar.percent }}%"></span></div><small>{{ bar.count }} serviço{{ bar.count|pluralize }}</small></li>{% endfor %}</ul>
+  </section>
+</div>
+<section class="finance-block" aria-labelledby="period-title">
+  <h2 id="period-title">{% if summary.start %}Por mês{% else %}Por ano{% endif %}</h2>
+  <div class="column-chart" role="list">{% for bar in summary.timeline %}<div class="column" role="listitem" aria-label="{{ bar.label }}: {{ bar.total|brl }}"><span class="column-value">{% if bar.count %}{{ bar.total|brl }}{% endif %}</span><span class="column-track"><span class="column-fill" style="height: {{ bar.percent }}%"></span></span><span class="column-label">{{ bar.label }}</span></div>{% endfor %}</div>
+  {% if summary.undated %}<p class="group-hint">{{ summary.undated }} serviço{{ summary.undated|pluralize }} sem data não aparece{{ summary.undated|pluralize:"m" }} no gráfico.</p>{% endif %}
+</section>
+{% else %}
+<section class="inline-empty"><i data-lucide="wallet" aria-hidden="true"></i><h2>Nenhum serviço neste período</h2><p class="muted">Registre o valor dos serviços para acompanhar os gastos.</p></section>
+{% endif %}
+<section class="finance-block forecast" aria-labelledby="forecast-title">
+  <h2 id="forecast-title">Próximos 12 meses (estimativa)</h2>
+  {% with forecast=summary.forecast %}
+  {% if forecast.items %}
+  <p class="forecast-total">{% if forecast.total is not None %}<strong>{{ forecast.total|brl }}</strong> previstos{% else %}Sem valores estimados{% endif %}{% if forecast.missing_estimate %} · {{ forecast.missing_estimate }} ite{{ forecast.missing_estimate|pluralize:"m,ns" }} sem custo estimado{% endif %}</p>
+  <ul class="record-list compact">{% for when, plan in forecast.items %}<li><a class="record-item" href="{% url 'plan_detail' plan.pk %}"><span class="record-icon"><i data-lucide="{{ plan.category|category_icon }}" aria-hidden="true"></i></span><span class="record-main"><strong>{{ plan.title }}</strong><span>{% if plan.due.state == 'overdue' %}Já passou da referência{% else %}Por volta de {{ when|date:'M/Y' }}{% endif %}</span></span><span class="record-side"><strong>{{ plan.estimated_cost|brl }}</strong></span></a></li>{% endfor %}</ul>
+  {% else %}<p class="muted">Nenhum item do plano previsto para os próximos 12 meses.</p>{% endif %}
+  <p class="group-hint">Baseado no plano de manutenção.{% if summary.km_per_day %} Datas por km estimadas pela média de {{ summary.km_per_day }} km por dia nas suas leituras.{% else %} Com mais leituras de km, a previsão também usa os itens por quilometragem.{% endif %}{% if forecast.without_date %} {{ forecast.without_date }} ite{{ forecast.without_date|pluralize:"m,ns" }} sem data prevista.{% endif %}</p>
+  {% endwith %}
+</section>
+<p class="disclaimer">Valores conforme registrados por você. Serviços sem valor não entram nos totais. <a href="{% url 'data_home' %}">Exportar dados em CSV</a>.</p>
+{% endblock %}

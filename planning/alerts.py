@@ -8,7 +8,8 @@ from django.utils import timezone
 from django.utils.functional import SimpleLazyObject
 
 from garage.context import get_active_vehicle
-from maintenance.models import Problem
+from maintenance.models import Problem, ServiceRecord
+from reports.models import BackupRecord
 
 from .models import AlertPreferences
 from .rules import evaluate, fmt_km
@@ -16,6 +17,7 @@ from .rules import evaluate, fmt_km
 LEVELS = {"high": (0, "Prioridade alta"), "medium": (1, "Prioridade média"), "low": (2, "Prioridade baixa")}
 STALE_PROBLEM_DAYS = 30
 RECURRENCE_WINDOW_DAYS = 365
+BACKUP_REMINDER_DAYS = 30
 
 
 @dataclass(frozen=True)
@@ -134,9 +136,25 @@ def warranty_alerts(vehicle, prefs, today):
             for service in vehicle.services.filter(warranty_until__gte=today, warranty_until__lte=limit)]
 
 
+def backup_alerts(prefs, today):
+    owner = prefs.owner
+    has_data = (ServiceRecord.objects.filter(vehicle__owner=owner).exists()
+                or Problem.objects.filter(vehicle__owner=owner).exists())
+    if not has_data:
+        return []
+    last = BackupRecord.objects.filter(owner=owner).first()
+    if last and (today - timezone.localtime(last.created_at).date()).days < BACKUP_REMINDER_DAYS:
+        return []
+    message = (f"O último foi em {timezone.localtime(last.created_at):%d/%m/%Y}." if last else "Nenhum backup feito ainda.")
+    return [Alert("low", "Faça um backup dos seus dados",
+                  f"{message} Guarde o arquivo fora deste computador para não perder o histórico.",
+                  reverse("data_home"), "Fazer backup", "hard-drive-download")]
+
+
 def build_alerts(vehicle, prefs, plans, today):
     alerts = [*plan_alerts(plans, today), *problem_alerts(vehicle, today),
-              *odometer_alerts(vehicle, plans, prefs, today), *warranty_alerts(vehicle, prefs, today)]
+              *odometer_alerts(vehicle, plans, prefs, today), *warranty_alerts(vehicle, prefs, today),
+              *backup_alerts(prefs, today)]
     visible = [alert for alert in alerts if prefs.allows(alert.level)]
     return sorted(visible, key=lambda alert: (not alert.urgent, LEVELS[alert.level][0]))
 

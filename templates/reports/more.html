@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Mais opções{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">MENU</p><h1>Mais opções</h1></div></div>
+<div class="register-options">
+  <a class="register-option" href="{% url 'timeline' %}"><span class="register-icon"><i data-lucide="history" aria-hidden="true"></i></span><span class="register-text"><strong>Linha do tempo</strong><span>Tudo o que aconteceu e o que vem pela frente</span></span><i data-lucide="chevron-right" aria-hidden="true"></i></a>
+  <a class="register-option" href="{% url 'finance' %}"><span class="register-icon"><i data-lucide="wallet" aria-hidden="true"></i></span><span class="register-text"><strong>Finanças</strong><span>Gastos por período, categoria e previsão</span></span><i data-lucide="chevron-right" aria-hidden="true"></i></a>
+  <a class="register-option" href="{% url 'vehicle_list' %}"><span class="register-icon"><i data-lucide="car-front" aria-hidden="true"></i></span><span class="register-text"><strong>Garagem</strong><span>Veículos e histórico de quilometragem</span></span><i data-lucide="chevron-right" aria-hidden="true"></i></a>
+  <a class="register-option" href="{% url 'data_home' %}"><span class="register-icon"><i data-lucide="hard-drive-download" aria-hidden="true"></i></span><span class="register-text"><strong>Seus dados</strong><span>Backup, restauração e planilhas</span></span><i data-lucide="chevron-right" aria-hidden="true"></i></a>
+  <a class="register-option" href="{% url 'alert_settings' %}"><span class="register-icon"><i data-lucide="sliders-horizontal" aria-hidden="true"></i></span><span class="register-text"><strong>Configurar alertas</strong><span>Antecedência e prioridades</span></span><i data-lucide="chevron-right" aria-hidden="true"></i></a>
+  <a class="register-option" href="{% url 'password_change' %}"><span class="register-icon"><i data-lucide="key-round" aria-hidden="true"></i></span><span class="register-text"><strong>Alterar senha</strong><span>Segurança da conta</span></span><i data-lucide="chevron-right" aria-hidden="true"></i></a>
+</div>
+{% endblock %}

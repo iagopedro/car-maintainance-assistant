@@ -1,0 +1,23 @@
+<div id="timeline-results" aria-live="polite">
+{% if form.errors %}<div class="notice notice-error" role="alert">{% for error in form.non_field_errors %}{{ error }} {% endfor %}{% for field in form %}{% for error in field.errors %}{{ field.label }}: {{ error }} {% endfor %}{% endfor %}</div>{% endif %}
+{% if upcoming %}
+<section class="timeline-upcoming" aria-labelledby="upcoming-title">
+  <h2 id="upcoming-title" class="group-title">Pela frente</h2>
+  <ul class="tl-list">{% for entry in upcoming %}{% include 'reports/partials/entry.html' %}{% endfor %}</ul>
+</section>
+{% endif %}
+{% if page_obj.paginator.count %}
+  {% regroup page_obj by group as months %}
+  {% for month in months %}
+  <section class="tl-month" aria-label="{{ month.grouper }}">
+    <h2 class="tl-month-title">{{ month.grouper }}</h2>
+    <ul class="tl-list">{% for entry in month.list %}{% include 'reports/partials/entry.html' %}{% endfor %}</ul>
+  </section>
+  {% endfor %}
+  {% include 'partials/pagination.html' %}
+{% elif not upcoming %}
+<section class="inline-empty"><i data-lucide="history" aria-hidden="true"></i><h2>{% if filtered %}Nada encontrado com esses filtros{% else %}A história do carro começa aqui{% endif %}</h2>
+  <p class="muted">{% if filtered %}Tente outro período ou limpe os filtros.{% else %}Registre um serviço, um problema ou a quilometragem.{% endif %}</p>
+  {% if not filtered %}<a class="btn btn-primary" href="{% url 'register' %}">Registrar</a>{% endif %}</section>
+{% endif %}
+</div>

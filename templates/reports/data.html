@@ -1,0 +1,38 @@
+{% extends 'base.html' %}{% load humanize %}
+{% block title %}Seus dados{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">EXPORTAÇÃO E BACKUP</p><h1>Seus dados</h1><p class="lead-text">Baixe planilhas para consultar e um backup completo para guardar.</p></div></div>
+<section class="data-block" aria-labelledby="backup-title">
+  <div class="data-icon"><i data-lucide="hard-drive-download" aria-hidden="true"></i></div>
+  <div class="data-body">
+    <h2 id="backup-title">Backup completo</h2>
+    <p>Um arquivo .zip com todos os seus veículos, serviços, problemas, plano, leituras e anexos. Guarde fora deste computador, por exemplo em um pendrive ou na nuvem. A senha da conta não vai no arquivo.</p>
+    <p class="muted">{% if last_backup %}Último backup: {{ last_backup.created_at|date:'d/m/Y H:i' }} ({{ last_backup.size|filesizeformat }}).{% else %}Nenhum backup feito ainda.{% endif %}</p>
+    <form method="post" action="{% url 'download_backup' %}">{% csrf_token %}<button class="btn btn-primary" type="submit"><i data-lucide="download" aria-hidden="true"></i>Baixar backup</button></form>
+  </div>
+</section>
+<section class="data-block" aria-labelledby="csv-title">
+  <div class="data-icon"><i data-lucide="sheet" aria-hidden="true"></i></div>
+  <div class="data-body">
+    <h2 id="csv-title">Planilhas (CSV)</h2>
+    <p>Abrem no Excel, LibreOffice ou Google Planilhas. Servem para consulta; para guardar tudo, use o backup.</p>
+    <div class="csv-links">{% for key, label in exports %}<a class="btn btn-outline-secondary" href="{% url 'export_csv' key %}"><i data-lucide="file-spreadsheet" aria-hidden="true"></i>{{ label }}</a>{% endfor %}</div>
+  </div>
+</section>
+<section class="data-block" aria-labelledby="restore-title">
+  <div class="data-icon"><i data-lucide="archive-restore" aria-hidden="true"></i></div>
+  <div class="data-body">
+    <h2 id="restore-title">Restaurar backup</h2>
+    {% if can_restore %}
+    <p>Importa um backup do Rodagem para esta conta. Use em um computador novo ou depois de reinstalar.</p>
+    <form method="post" action="{% url 'restore_backup' %}" enctype="multipart/form-data" class="restore-form">{% csrf_token %}
+      <div class="field"><label class="form-label" for="{{ restore_form.backup.id_for_label }}">{{ restore_form.backup.label }}</label>{{ restore_form.backup }}</div>
+      <div class="field checkbox-field">{{ restore_form.confirm }}<label for="{{ restore_form.confirm.id_for_label }}">{{ restore_form.confirm.label }}</label></div>
+      <button class="btn btn-outline-secondary" type="submit"><i data-lucide="upload" aria-hidden="true"></i>Restaurar</button>
+    </form>
+    {% else %}
+    <p class="muted">Disponível apenas em uma conta sem veículos cadastrados, para não misturar nem sobrescrever dados. Para restaurar, crie uma instalação nova e use esta opção antes de cadastrar qualquer veículo.</p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

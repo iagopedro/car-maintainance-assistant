@@ -1,0 +1,9 @@
+<li class="tl-item tl-{{ entry.kind }}"><a href="{{ entry.url }}">
+  <span class="tl-dot" aria-hidden="true"><i data-lucide="{{ entry.icon }}"></i></span>
+  <span class="tl-body">
+    <span class="tl-meta"><time {% if entry.date %}datetime="{{ entry.date|date:'Y-m-d' }}"{% endif %}>{{ entry.date|date:'d/m/Y'|default:'Data desconhecida' }}</time><span class="tl-tag tone-{{ entry.tone }}">{{ entry.tag }}</span></span>
+    <strong>{{ entry.title }}</strong>
+    {% if entry.detail %}<span class="tl-detail">{{ entry.detail|truncatechars:160 }}</span>{% endif %}
+  </span>
+  {% if entry.amount %}<span class="tl-amount">{{ entry.amount }}</span>{% endif %}
+</a></li>

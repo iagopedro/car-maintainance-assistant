@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}Linha do tempo{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">{{ vehicle|upper }}</p><h1>Linha do tempo</h1><p class="lead-text">Tudo o que aconteceu com o carro e o que vem pela frente.</p></div>
+  <div class="heading-actions">{% include 'partials/vehicle_switcher.html' %}</div></div>
+<form method="get" class="filter-form" hx-get="{% url 'timeline' %}" hx-target="#timeline-results" hx-push-url="true" hx-swap="outerHTML" hx-trigger="submit, change">
+  {% include 'partials/field.html' with field=form.type %}
+  <details class="filter-more" {% if form.has_extra_filters %}open{% endif %}><summary>Mais filtros</summary>
+    <div class="form-grid">
+      {% include 'partials/field.html' with field=form.category %}
+      {% include 'partials/field.html' with field=form.status %}
+      {% include 'partials/field.html' with field=form.start %}
+      {% include 'partials/field.html' with field=form.end %}
+    </div>
+  </details>
+  <div class="filter-actions"><button type="submit" class="btn btn-outline-secondary js-hide"><i data-lucide="list-filter" aria-hidden="true"></i>Filtrar</button><a class="text-link" href="{% url 'timeline' %}">Limpar filtros</a></div>
+</form>
+{% include 'reports/timeline_results.html' %}
+{% endblock %}

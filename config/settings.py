@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     "garage",
     "maintenance",
     "planning",
+    "reports",
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
