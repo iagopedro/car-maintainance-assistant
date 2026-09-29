@@ -41,6 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
   document.querySelectorAll("[data-add-part]").forEach((button) => button.addEventListener("click", () => addPartRow(button)));
+  document.querySelectorAll(".column-chart").forEach((chart) => { chart.scrollLeft = chart.scrollWidth; });
 });
 
 document.addEventListener("submit", (event) => {

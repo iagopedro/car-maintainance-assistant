@@ -5,6 +5,7 @@ from django.contrib.auth.views import LoginView
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
+from django.db.models import Sum
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -14,6 +15,7 @@ from django.views.decorators.http import require_POST
 
 from maintenance.models import Problem
 from planning.alerts import planning_overview
+from planning.rules import add_months
 
 from .context import ACTIVE_VEHICLE_KEY, get_active_vehicle
 from .forms import LoginForm, ReadingFilterForm, ReadingForm, SetupForm, VehicleCreateForm, VehicleForm
@@ -68,6 +70,8 @@ def dashboard(request):
     context = {
         "section": "dashboard", "vehicle": vehicle, "latest": latest,
         "recent_services": services[:4], "service_count": services.count(),
+        "spent_12m": services.filter(date__gte=add_months(today.replace(day=1), -11))
+                             .aggregate(total=Sum("total_cost"))["total"] or 0,
         "active_problems": active_problems[:4], "active_problem_count": active_problems.count(),
         "plan_attention": sum(1 for plan in plans if plan.due.state in ("overdue", "soon")),
         "plan_count": len(plans), "alerts": alerts,
