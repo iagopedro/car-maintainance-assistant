@@ -1,8 +1,11 @@
+import json
+import tempfile
 from datetime import timedelta
+from pathlib import Path
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils import timezone
 
 from .models import OdometerReading, Vehicle
@@ -184,3 +187,27 @@ class SetupTests(TestCase):
         response = self.client.post("/conta/iniciar/", {"username": "driver", "password1": "123", "password2": "123"})
         self.assertEqual(response.status_code, 200)
         self.assertFalse(get_user_model().objects.exists())
+
+
+class LocalPresetTests(TestCase):
+    def setUp(self):
+        self.client.force_login(get_user_model().objects.create_user(username="owner"))
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        self.presets = Path(directory.name) / "presets.json"
+        override = override_settings(LOCAL_PRESETS_FILE=self.presets)
+        override.enable()
+        self.addCleanup(override.disable)
+
+    def test_missing_file_keeps_generic_preset(self):
+        response = self.client.get("/veiculos/novo/?preset=exemplo")
+        self.assertContains(response, "Motorização e combustível a confirmar")
+
+    def test_local_notes_are_used_and_unknown_fields_ignored(self):
+        self.presets.write_text(json.dumps({"exemplo": {"notes": "Uso local privado", "owner": 999}}), encoding="utf-8")
+        response = self.client.get("/veiculos/novo/?preset=exemplo")
+        self.assertContains(response, "Uso local privado")
+
+    def test_invalid_file_is_ignored(self):
+        self.presets.write_text("{invalid", encoding="utf-8")
+        self.assertEqual(self.client.get("/veiculos/novo/?preset=exemplo").status_code, 200)

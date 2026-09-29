@@ -12,6 +12,13 @@ Registro do que já custou tempo nos incrementos 1 e 2. Leia antes de mudar regr
 - Git: `Rename from .git/index.lock ... failed. Should I try again? (y/n)` ocorre quando o VS Code lê o repositório ao mesmo tempo. Responda `y`; não apague o `index.lock` enquanto houver processo Git ativo. Faça commits um por comando, sem encadear vários, para o prompt não consumir o comando seguinte.
 - Identidade do Git somente com `git config --local`; nunca altere a configuração global.
 
+## Repositório público
+
+- O repositório é público. Não versione dados pessoais: rotina, endereços, placa, e-mail, credenciais ou anexos. Use `.local/` (ignorado), como em `.local/presets.json`.
+- Commits usam o e-mail noreply do GitHub (`git config --local user.email`). Um e-mail pessoal publicado exige reescrever o histórico e fazer force push.
+- Antes de publicar, busque segredos e dados pessoais em todas as revisões (`git grep ... $(git rev-list --all)`), não só nos arquivos atuais.
+- Senhas nos testes são fictícias e usadas apenas em bancos temporários.
+
 ## Regras de domínio (não reabrir sem motivo)
 
 - **Não inventar intervalos de manutenção.** Recomendações do fabricante só entram com fonte validada (manual/versão).

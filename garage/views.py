@@ -17,6 +17,7 @@ from maintenance.models import Problem
 from .context import ACTIVE_VEHICLE_KEY, get_active_vehicle
 from .forms import LoginForm, ReadingFilterForm, ReadingForm, SetupForm, VehicleCreateForm, VehicleForm
 from .models import Installation, OdometerReading, Vehicle
+from .presets import load_local_preset
 from .services import record_reading
 
 
@@ -84,9 +85,8 @@ def vehicle_create(request):
     if request.GET.get("preset") == "exemplo":
         initial = {
             "brand": "Exemplo", "model": "Compacto", "model_year": 2022, "engine": "1.0 Flex",
-            "notes": ""
-                     ""
-                     "Motorização e combustível a confirmar na documentação.",
+            "notes": "Motorização e combustível a confirmar na documentação.",
+            **load_local_preset("exemplo"),
         }
     form = VehicleCreateForm(request.POST or None, initial=initial)
     if request.method == "POST" and form.is_valid():

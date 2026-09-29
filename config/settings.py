@@ -86,6 +86,8 @@ STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+# Personal form defaults (e.g. usage notes) stay out of the public repository.
+LOCAL_PRESETS_FILE = BASE_DIR / ".local" / "presets.json"
 # Attachments are private: served only by an owner-checked view, never by a public media URL.
 MEDIA_ROOT = BASE_DIR / "media"
 DATA_UPLOAD_MAX_NUMBER_FILES = 10

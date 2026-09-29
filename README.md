@@ -43,6 +43,12 @@ Abra http://127.0.0.1:8000 e crie sua conta diretamente no navegador. Nao ha cre
 
 O atalho do Compacto apenas preenche o formulario: Exemplo Compacto 2022 e motorizacao informada, nao validada. Nao cadastra o carro automaticamente, nao presume quilometragem, combustivel ou aquisicao e nao cria historico de manutencao. O caso da agua na porta tambem so preenche o formulario com o seu relato; nada e salvo sem confirmacao.
 
+Textos pessoais do atalho (ex.: rotina de uso) ficam em `.local/presets.json`, fora do versionamento. Campos aceitos: `brand`, `model`, `version`, `model_year`, `manufacture_year`, `engine`, `fuel`, `plate`, `notes`. Exemplo:
+
+```json
+{"exemplo": {"notes": "Descreva aqui trajetos e condicoes de uso."}}
+```
+
 O servidor acima e de desenvolvimento, restrito ao computador. Para uso local prolongado, apos `collectstatic`, e possivel usar o servidor WSGI instalado:
 
 ```powershell
