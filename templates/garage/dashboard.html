@@ -1,0 +1,36 @@
+{% extends 'base.html' %}{% load humanize maintenance_tags %}
+{% block title %}Visão geral{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">SEU PONTO DE PARTIDA</p><h1>Visão geral</h1></div>{% if vehicle %}{% include 'partials/vehicle_switcher.html' %}{% else %}<a class="btn btn-outline-secondary" href="{% url 'vehicle_create' %}"><i data-lucide="plus" aria-hidden="true"></i>Novo veículo</a>{% endif %}</div>
+{% if vehicle %}
+<section class="vehicle-overview">
+  <div><span class="status-tag"><span class="status-dot"></span>VEÍCULO ATIVO</span><h2>{{ vehicle.brand }} {{ vehicle.model }} <span>{{ vehicle.model_year }}</span></h2><p class="vehicle-subtitle">{% if vehicle.version %}{{ vehicle.version }} · {% endif %}{{ vehicle.engine|default:'Motorização não informada' }}</p>
+    {% if not vehicle.engine_verified %}<span class="tag tag-muted">Motorização a confirmar</span>{% endif %}
+    <div class="vehicle-actions"><a class="btn btn-primary" href="{% url 'service_create' %}"><i data-lucide="wrench" aria-hidden="true"></i>Registrar serviço</a><a class="btn btn-outline-secondary" href="{% url 'problem_create' %}"><i data-lucide="message-square-warning" aria-hidden="true"></i>Relatar problema</a><a class="text-link" href="{% url 'reading_create' vehicle.pk %}"><i data-lucide="gauge" aria-hidden="true"></i>Atualizar km</a></div>
+  </div>
+  <div class="odometer-display"><p>ÚLTIMA QUILOMETRAGEM INFORMADA</p><div>{% if latest %}{{ latest.kilometers|intcomma }}<small>km</small>{% else %}<span class="unknown-value">Não informada</span>{% endif %}</div><span>{% if latest %}Leitura de {{ latest.date|date:'d/m/Y' }} · {{ latest.get_source_display }}{% else %}Sem leitura registrada{% endif %}</span></div>
+</section>
+<section class="metrics-row" aria-label="Resumo dos registros">
+  <a href="{% url 'service_list' %}"><i data-lucide="wrench" aria-hidden="true"></i><span>Serviços registrados</span><strong>{{ service_count }}</strong></a>
+  <a href="{% url 'problem_list' %}"><i data-lucide="message-square-warning" aria-hidden="true"></i><span>Problemas em aberto</span><strong>{{ active_problem_count }}</strong></a>
+  <div><i data-lucide="shield-check" aria-hidden="true"></i><span>Serviços em garantia</span><strong>{{ warranty_count }}</strong></div>
+  <a href="{% url 'reading_list' vehicle.pk %}"><i data-lucide="calendar-days" aria-hidden="true"></i><span>Desde a última leitura</span><strong>{% if reading_age is not None %}{{ reading_age }} <small>dia{{ reading_age|pluralize }}</small>{% else %}<small>Sem leitura</small>{% endif %}</strong></a>
+</section>
+<div class="dashboard-columns">
+  <section><div class="section-heading"><h2>Últimos serviços</h2><a class="text-link" href="{% url 'service_list' %}">Ver todos<i data-lucide="arrow-right" aria-hidden="true"></i></a></div>
+    {% if recent_services %}<ul class="record-list">{% for service in recent_services %}{% include 'maintenance/partials/service_item.html' %}{% endfor %}</ul>
+    {% else %}<div class="inline-empty"><i data-lucide="wrench" aria-hidden="true"></i><h3>Nenhum serviço registrado ainda.</h3><a class="text-link" href="{% url 'service_create' %}">Registrar o primeiro<i data-lucide="arrow-right" aria-hidden="true"></i></a></div>{% endif %}
+  </section>
+  <aside class="pending-section">
+    <div class="section-heading"><h2>Problemas em aberto</h2><a class="text-link" href="{% url 'problem_list' %}">Ver<i data-lucide="arrow-right" aria-hidden="true"></i></a></div>
+    {% if active_problems %}<ul class="record-list compact">{% for problem in active_problems %}{% include 'maintenance/partials/problem_item.html' %}{% endfor %}</ul>{% else %}<p class="muted">Nenhum problema em aberto.</p>{% endif %}
+    <div class="section-heading pending-heading"><h2>Dados a conferir</h2><i data-lucide="clipboard-list" aria-hidden="true"></i></div>
+    <ul class="pending-list">{% if not latest %}<li><span class="pending-mark"></span><div><strong>Quilometragem atual</strong><span>Ainda não informada</span></div></li>{% endif %}{% if not vehicle.engine_verified %}<li><span class="pending-mark"></span><div><strong>Motorização</strong><span>Conferência na documentação pendente</span></div></li>{% endif %}{% if not vehicle.acquisition_date %}<li><span class="pending-mark"></span><div><strong>Data de aquisição</strong><span>Ainda não informada</span></div></li>{% endif %}{% if vehicle.fuel == 'unknown' %}<li><span class="pending-mark"></span><div><strong>Combustível</strong><span>A confirmar</span></div></li>{% endif %}</ul>
+    {% if latest and vehicle.engine_verified and vehicle.acquisition_date and vehicle.fuel != 'unknown' %}<p class="muted">Nenhuma pendência cadastral nesses itens.</p>{% endif %}
+    <a class="text-link" href="{% url 'vehicle_edit' vehicle.pk %}">Revisar cadastro<i data-lucide="arrow-up-right" aria-hidden="true"></i></a>
+  </aside>
+</div>
+{% else %}
+<section class="welcome-section"><div><p class="eyebrow">SUA GARAGEM ESTÁ PRONTA</p><h2>O primeiro passo<br>é o seu carro.</h2><p>Nenhum veículo cadastrado.</p><div class="vehicle-actions"><a class="btn btn-primary" href="{% url 'vehicle_create' %}?preset=exemplo"><i data-lucide="plus" aria-hidden="true"></i>Cadastrar veículo de exemplo</a><a class="text-link" href="{% url 'vehicle_create' %}">Outro veículo<i data-lucide="arrow-right" aria-hidden="true"></i></a></div></div><div class="road-art" aria-hidden="true"></div></section>
+{% endif %}
+{% endblock %}

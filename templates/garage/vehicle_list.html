@@ -1,0 +1,11 @@
+{% extends 'base.html' %}{% load humanize %}
+{% block title %}Garagem{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">SEUS VEÍCULOS</p><h1>Garagem <span class="heading-count">{{ vehicles.count }}</span></h1></div><a class="btn btn-primary" href="{% url 'vehicle_create' %}"><i data-lucide="plus" aria-hidden="true"></i>Novo veículo</a></div>
+<div class="vehicle-grid">{% for vehicle in vehicles %}
+  <article class="vehicle-card"><div class="vehicle-card-top"><i data-lucide="car-front" aria-hidden="true"></i><span class="tag">{{ vehicle.model_year }}</span></div><h2><a href="{% url 'vehicle_detail' vehicle.pk %}">{{ vehicle.brand }} {{ vehicle.model }}</a></h2><p>{{ vehicle.version|default:'Versão não informada' }}</p>
+    {% with latest=vehicle.latest_reading %}<div class="card-mileage">{% if latest %}{{ latest.kilometers|intcomma }} <small>km</small>{% else %}<small>Quilometragem não informada</small>{% endif %}</div>{% endwith %}
+    <div class="card-actions"><form method="post" action="{% url 'vehicle_activate' vehicle.pk %}">{% csrf_token %}<button type="submit" class="text-link">Usar no painel<i data-lucide="arrow-right" aria-hidden="true"></i></button></form><a class="icon-button" href="{% url 'vehicle_edit' vehicle.pk %}" title="Editar {{ vehicle }}" aria-label="Editar {{ vehicle }}"><i data-lucide="pencil" aria-hidden="true"></i></a></div>
+  </article>
+{% empty %}<section class="empty-state"><i data-lucide="car-front" aria-hidden="true"></i><h2>Nenhum veículo cadastrado</h2><a class="btn btn-primary" href="{% url 'vehicle_create' %}?preset=exemplo">Cadastrar veículo de exemplo</a></section>{% endfor %}</div>
+{% endblock %}

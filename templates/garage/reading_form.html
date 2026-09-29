@@ -1,0 +1,12 @@
+{% extends 'base.html' %}{% load humanize %}
+{% block title %}Registrar quilometragem{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'reading_list' vehicle.pk %}"><i data-lucide="arrow-left" aria-hidden="true"></i>Histórico de km</a>
+<div class="page-heading"><div><p class="eyebrow">{{ vehicle }}</p><h1>Registrar quilometragem</h1></div></div>
+<div class="reading-layout"><form method="post" class="editor-form">{% csrf_token %}
+  {% if form.non_field_errors %}<div class="notice notice-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+  <div class="form-grid">{% include 'partials/field.html' with field=form.kilometers %}{% include 'partials/field.html' with field=form.date %}</div>
+  {% include 'partials/field.html' with field=form.source %}{% include 'partials/field.html' with field=form.notes %}
+  <div class="form-actions"><a class="btn btn-outline-secondary" href="{% url 'reading_list' vehicle.pk %}">Cancelar</a><button class="btn btn-primary" type="submit"><i data-lucide="check" aria-hidden="true"></i>Salvar leitura</button></div>
+</form><aside class="reading-reference"><i data-lucide="gauge" aria-hidden="true"></i><h2>Última leitura</h2>{% if latest %}<strong>{{ latest.kilometers|intcomma }} <small>km</small></strong><p>{{ latest.date|date:'d/m/Y' }}<br>{{ latest.get_source_display }}</p>{% else %}<p>Nenhuma leitura registrada.</p>{% endif %}</aside></div>
+{% endblock %}

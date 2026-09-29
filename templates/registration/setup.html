@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Criar conta{% endblock %}
+{% block content %}
+<section class="auth-layout">
+  <div class="auth-intro"><p class="eyebrow">O PRÓXIMO CAPÍTULO</p><h1>Todo cuidado<br>tem um começo.</h1><p>Uma garagem para acompanhar<br>o caminho do seu carro.</p><div class="road-art" aria-hidden="true"></div></div>
+  <div class="auth-form"><h2>Criar sua conta</h2>
+    <form method="post">{% csrf_token %}
+      {% if form.non_field_errors %}<div class="notice notice-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+      {% for field in form %}{% include 'partials/field.html' %}{% endfor %}
+      <button class="btn btn-primary" type="submit">Criar conta<i data-lucide="arrow-right" aria-hidden="true"></i></button>
+    </form>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,9 @@
+{% load humanize %}
+<div id="reading-results" aria-live="polite">
+{% if filter_form.errors %}<div class="notice notice-error" role="alert">{{ filter_form.errors }}</div>{% endif %}
+{% if page_obj %}
+<p class="result-count">{{ page_obj.paginator.count }} leitura{{ page_obj.paginator.count|pluralize }}</p>
+<div class="table-responsive"><table class="table reading-table"><caption class="visually-hidden">Leituras de quilometragem de {{ vehicle }}</caption><thead><tr><th scope="col">Data</th><th scope="col">Quilometragem</th><th scope="col">Origem</th><th scope="col">Observação</th></tr></thead><tbody>{% for reading in page_obj %}<tr><td><time datetime="{{ reading.date|date:'Y-m-d' }}">{{ reading.date|date:'d/m/Y' }}</time></td><td><strong>{{ reading.kilometers|intcomma }} km</strong></td><td>{{ reading.get_source_display }}</td><td class="reading-notes">{{ reading.notes|default:'Sem observação' }}</td></tr>{% endfor %}</tbody></table></div>
+{% if page_obj.has_other_pages %}<nav class="pagination-nav" aria-label="Paginação">{% if page_obj.has_previous %}<a class="btn btn-outline-secondary" href="?{{ querystring }}&page={{ page_obj.previous_page_number }}">Anterior</a>{% endif %}<span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>{% if page_obj.has_next %}<a class="btn btn-outline-secondary" href="?{{ querystring }}&page={{ page_obj.next_page_number }}">Próxima</a>{% endif %}</nav>{% endif %}
+{% else %}<section class="inline-empty"><i data-lucide="notebook-tabs" aria-hidden="true"></i><h2>Nenhuma leitura neste período</h2></section>{% endif %}
+</div>

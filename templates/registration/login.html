@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Entrar{% endblock %}
+{% block content %}
+<section class="auth-layout">
+  <div class="auth-intro"><p class="eyebrow">SUA GARAGEM PESSOAL</p><h1>Bom ter você<br>de volta.</h1><p>Seu carro. Sua história.<br>Um quilômetro de cada vez.</p><div class="road-art" aria-hidden="true"></div></div>
+  <div class="auth-form"><h2>Entrar na conta</h2>
+    <form method="post">{% csrf_token %}
+      {% if form.non_field_errors %}<div class="notice notice-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+      {% for field in form %}{% include 'partials/field.html' %}{% endfor %}
+      <input type="hidden" name="next" value="{{ next }}">
+      <button class="btn btn-primary" type="submit">Entrar<i data-lucide="arrow-right" aria-hidden="true"></i></button>
+    </form>
+  </div>
+</section>
+{% endblock %}

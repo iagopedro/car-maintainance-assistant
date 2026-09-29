@@ -1,0 +1,3 @@
+{% extends 'base.html' %}
+{% block title %}Acesso temporariamente limitado{% endblock %}
+{% block content %}<section class="empty-state"><i data-lucide="shield" aria-hidden="true"></i><h1>Acesso temporariamente limitado</h1><p>Muitas tentativas de entrada. Aguarde 15 minutos antes de tentar novamente.</p><a class="btn btn-outline-secondary" href="{% url 'login' %}">Voltar</a></section>{% endblock %}
