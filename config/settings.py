@@ -64,7 +64,7 @@ TEMPLATES = [{
 WSGI_APPLICATION = "config.wsgi.application"
 DATABASES = {"default": {
     "ENGINE": "django.db.backends.sqlite3",
-    "NAME": BASE_DIR / "db.sqlite3",
+    "NAME": Path(os.environ.get("RODAGEM_DB_PATH") or BASE_DIR / "db.sqlite3"),
     "OPTIONS": {"timeout": 20},
 }}
 AUTHENTICATION_BACKENDS = [
@@ -93,7 +93,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Personal form defaults (e.g. usage notes) stay out of the public repository.
 LOCAL_PRESETS_FILE = BASE_DIR / ".local" / "presets.json"
 # Attachments are private: served only by an owner-checked view, never by a public media URL.
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT = Path(os.environ.get("RODAGEM_MEDIA_ROOT") or BASE_DIR / "media")
 DATA_UPLOAD_MAX_NUMBER_FILES = 10
 FILE_UPLOAD_PERMISSIONS = 0o600
 LOGIN_URL = "login"
@@ -104,6 +104,10 @@ SESSION_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_AGE = 43200
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
+# Browsers share cookies across ports, so an isolated instance needs its own cookie names.
+if os.environ.get("RODAGEM_COOKIE_SUFFIX"):
+    SESSION_COOKIE_NAME = f"sessionid_{os.environ['RODAGEM_COOKIE_SUFFIX']}"
+    CSRF_COOKIE_NAME = f"csrftoken_{os.environ['RODAGEM_COOKIE_SUFFIX']}"
 SECURE_SSL_REDIRECT = not DEBUG
 SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
 SECURE_CONTENT_TYPE_NOSNIFF = True
