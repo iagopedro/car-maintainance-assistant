@@ -18,7 +18,7 @@
 <section class="detail-section"><h2>Relato</h2><div class="prose">{{ problem.description|linebreaks }}</div></section>
 {% if problem.diagnosis %}<section class="detail-section"><h2>Diagnóstico</h2><div class="prose">{{ problem.diagnosis|linebreaks }}</div></section>{% endif %}
 {% if problem.solution or problem.resolved_by_service %}<section class="detail-section solution-section"><h2>Solução</h2>{% if problem.solution %}<div class="prose">{{ problem.solution|linebreaks }}</div>{% endif %}
-  <p class="muted">{% if problem.resolved_on %}Resolvido em {{ problem.resolved_on|date:'d/m/Y' }}.{% endif %} {% if problem.resolved_by_service %}<a href="{% url 'service_detail' problem.resolved_by_service.pk %}">Ver serviço: {{ problem.resolved_by_service.display_title }}</a>{% endif %}</p></section>{% endif %}
+  {% if problem.resolved_on or problem.resolved_by_service %}<p class="muted">{% if problem.resolved_on %}Resolvido em {{ problem.resolved_on|date:'d/m/Y' }}.{% endif %} {% if problem.resolved_by_service %}<a href="{% url 'service_detail' problem.resolved_by_service.pk %}">Ver serviço: {{ problem.resolved_by_service.display_title }}</a>{% endif %}</p>{% endif %}</section>{% endif %}
 <div class="problem-columns">
   <section class="detail-section"><h2>Acompanhamento</h2>
     <ol class="timeline">

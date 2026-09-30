@@ -257,6 +257,14 @@ class ProblemTests(MediaTestCase):
         self.assertEqual(problem.display_title, "Barulho ao frear")
         self.assertEqual(self.create_problem(description="").status_code, 200)
 
+    def test_problem_list_count_and_solution_without_date(self):
+        Problem.objects.create(vehicle=self.vehicle, symptom="noise", description="Rangido", status="resolved",
+                               solution="Presilha trocada.")
+        self.assertContains(self.client.get("/problemas/"), '0<span class="visually-hidden"> problemas</span>')
+        detail = self.client.get(f"/problemas/{Problem.objects.get().pk}/")
+        self.assertContains(detail, "Presilha trocada.")
+        self.assertNotContains(detail, '<p class="muted"> </p>')
+
     def test_resolved_history_without_dates(self):
         self.client.post("/problemas/novo/", {
             "symptom": "noise", "title": "Rangido no painel", "description": "Rangido no painel em piso irregular.",
@@ -277,7 +285,9 @@ class ProblemTests(MediaTestCase):
         problem = Problem.objects.create(vehicle=self.vehicle, symptom="noise", description="Barulho",
                                          reported_on=TODAY() - timedelta(days=10))
         url = f"/problemas/{problem.pk}/"
-        self.assertContains(self.client.post(url, {"date": TODAY().isoformat(), "status": "", "note": ""}), "Escreva o que aconteceu")
+        response = self.client.post(url, {"date": TODAY().isoformat(), "status": "", "note": ""})
+        self.assertContains(response, "Escreva o que aconteceu")
+        self.assertIn("note", response.context["update_form"].errors)
         early = (TODAY() - timedelta(days=11)).isoformat()
         self.assertContains(self.client.post(url, {"date": early, "status": "", "note": "x"}), "anterior ao relato")
         self.client.post(url, {"date": TODAY().isoformat(), "status": "", "note": "Voltou a acontecer"})

@@ -203,7 +203,7 @@ class ProblemUpdateForm(StyledFormMixin, forms.ModelForm):
     def clean(self):
         cleaned = super().clean()
         if not cleaned.get("note", "").strip() and not cleaned.get("status"):
-            raise forms.ValidationError("Escreva o que aconteceu ou altere a situação.")
+            self.add_error("note", "Escreva o que aconteceu ou altere a situação.")
         update_date = cleaned.get("date")
         if update_date and self.problem.reported_on and update_date < self.problem.reported_on:
             self.add_error("date", "A atualização não pode ser anterior ao relato.")

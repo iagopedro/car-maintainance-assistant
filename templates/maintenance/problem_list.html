@@ -2,7 +2,7 @@
 {% block title %}Problemas{% endblock %}
 {% block content %}
 <div class="page-heading"><div><p class="eyebrow">{{ vehicle|upper }}</p><h1>Problemas</h1></div><div class="heading-actions">{% include 'partials/vehicle_switcher.html' %}<a class="btn btn-primary" href="{% url 'problem_create' %}"><i data-lucide="plus" aria-hidden="true"></i>Relatar problema</a></div></div>
-<nav class="tabs" aria-label="Filtrar por situação">{% for key, label in views %}<a href="?view={{ key }}{% if filter_form.q.value %}&amp;q={{ filter_form.q.value|urlencode }}{% endif %}" {% if view == key %}aria-current="page"{% endif %}>{{ label }}{% if key == 'active' %}<span class="count">{{ counts.active }}</span>{% endif %}</a>{% endfor %}</nav>
+<nav class="tabs" aria-label="Filtrar por situação">{% for key, label in views %}<a href="?view={{ key }}{% if filter_form.q.value %}&amp;q={{ filter_form.q.value|urlencode }}{% endif %}" {% if view == key %}aria-current="page"{% endif %}>{{ label }}{% if key == 'active' %}<span class="count">{{ counts.active }}<span class="visually-hidden"> problema{{ counts.active|pluralize }}</span></span>{% endif %}</a>{% endfor %}</nav>
 <form method="get" class="search-form" hx-get="{% url 'problem_list' %}" hx-target="#problem-results" hx-push-url="true" hx-swap="outerHTML">
   <input type="hidden" name="view" value="{{ view }}">
   {% include 'partials/field.html' with field=filter_form.q %}
