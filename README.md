@@ -138,7 +138,7 @@ Monólito modular Django 5.2 LTS, SQLite, templates, Bootstrap e HTMX, com recur
 Decisões principais:
 
 - **Django com templates e HTMX, sem SPA:** um único projeto fácil de manter, com autenticação, ORM, migrações e segurança maduros.
-- **Uso local primeiro:** SQLite e servidor restrito ao computador. Na nuvem, o caminho é PostgreSQL, armazenamento privado de anexos, HTTPS e `DJANGO_DEBUG=0` com `DJANGO_SECRET_KEY` e `DJANGO_ALLOWED_HOSTS`, validando com `manage.py check --deploy`.
+- **Uso local primeiro:** SQLite e servidor restrito ao computador. Na nuvem, o caminho é PostgreSQL, armazenamento privado de anexos, HTTPS e `DJANGO_DEBUG=0` com `DJANGO_SECRET_KEY` e `DJANGO_ALLOWED_HOSTS`, validando com `manage.py check --deploy`. O checklist completo está em [docs/implantacao-nuvem.md](docs/implantacao-nuvem.md).
 - **Dados derivados, não duplicados:** quilometragem atual, situação do plano, alertas e linha do tempo são calculados a cada requisição. Não há colunas ou tabelas que possam divergir.
 - **Nenhum intervalo presumido:** sugestões vêm sem números (há testes que garantem isso), e recomendações do fabricante ficam "a validar" até terem fonte confirmada.
 - **Assistente por regras, não IA generativa:** explicável, testável, gratuito, funciona offline e não "inventa" diagnósticos. A base é geral (não específica de um modelo) e sempre separa inspeção, possível problema e comportamento normal.

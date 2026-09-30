@@ -90,7 +90,7 @@ Achados (todos corrigidos):
 - Mensagens de aviso ganharam estilo próprio (antes usariam o visual de sucesso).
 - Anexos: "Baixar" e "Remover" repetidos sem contexto; agora incluem o nome do arquivo, e a imagem avisa que abre em nova aba.
 - Peças: linhas com nomes idênticos e falso "obrigatório"; agora cada linha é um grupo "Peça N", e o nome só é exigido quando a linha é usada.
-- Recomendação para a nuvem: servir estáticos com nome versionado (hash), para o navegador não usar JS/CSS antigo após atualizações.
+- Recomendação para a nuvem: servir estáticos com nome versionado (hash), para o navegador não usar JS/CSS antigo após atualizações. Configuração testada em `docs/implantacao-nuvem.md`.
 
 ## 4. Problemas
 
