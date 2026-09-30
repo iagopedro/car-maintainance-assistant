@@ -14,7 +14,7 @@ Registro do que já custou tempo nos incrementos 1 e 2. Leia antes de mudar regr
 
 ## Repositório público
 
-- O repositório é público. Não versione dados pessoais: rotina, endereços, placa, e-mail, credenciais ou anexos. Use `.local/` (ignorado), como em `.local/presets.json`.
+- O repositório é público e a aplicação é genérica: nada de dados de um carro, pessoa ou cidade específicos no código, nos testes ou na documentação (nem como atalho ou exemplo). Dados reais são cadastrados pela interface; exemplos usam veículos fictícios ("Exemplo Compacto 2020"). Configurações regionais vêm de variáveis de ambiente (`RODAGEM_TIME_ZONE`).
 - Commits usam o e-mail noreply do GitHub (`git config --local user.email`). Um e-mail pessoal publicado exige reescrever o histórico e fazer force push.
 - Antes de publicar, busque segredos e dados pessoais em todas as revisões (`git grep ... $(git rev-list --all)`), não só nos arquivos atuais.
 - Senhas nos testes são fictícias e usadas apenas em bancos temporários.
@@ -23,8 +23,6 @@ Registro do que já custou tempo nos incrementos 1 e 2. Leia antes de mudar regr
 
 - **Não inventar intervalos de manutenção.** Recomendações do fabricante só entram com fonte validada (manual/versão).
 - **Desconhecido não é zero.** Quilometragem, data, custo e aquisição ausentes ficam `NULL` e aparecem como "não informado"/"data desconhecida".
-- **Atalhos só preenchem formulários.** Os atalhos do Compacto e do caso da água na porta não salvam nada sem confirmação.
-- **Caso da porta traseira:** ruído de líquido ao frear era água acumulada na porta, drenada ao desobstruir os drenos. Não é problema de combustível, bomba ou injeção. Está registrado como "causa descartada".
 - Gravidade de problema é **percebida pelo usuário**, não diagnóstico. Alertas não devem afirmar defeito.
 - Nenhuma exclusão de veículo pela interface (evita perda de histórico). Serviços e problemas podem ser excluídos com confirmação.
 

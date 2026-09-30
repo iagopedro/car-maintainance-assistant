@@ -20,7 +20,7 @@ Endereço: http://127.0.0.1:8001. Os fluxos são sequenciais: cada um usa os dad
 | 1 | Primeiro acesso e conta | Aprovado | 30/09/2026 |
 | 2 | Garagem e quilometragem | Aprovado | 30/09/2026 |
 | 3 | Serviços | Pendente | |
-| 4 | Problemas e o caso da porta | Pendente | |
+| 4 | Problemas | Pendente | |
 | 5 | Plano de manutenção | Pendente | |
 | 6 | Alertas e preferências | Pendente | |
 | 7 | Linha do tempo e finanças | Pendente | |
@@ -36,7 +36,7 @@ Pré-condição: instância zerada (`-Reset`).
 |---|---|---|
 | 1.1 | Abrir a instância | Redireciona para "Criar sua conta"; não há credenciais padrão |
 | 1.2 | Criar conta com senha fraca (`12345678`) | Conta não criada; erros de validação da senha visíveis |
-| 1.3 | Criar a conta `fluxo-teste` com senha forte | Painel "Visão geral" com boas-vindas e atalho "Cadastrar veículo de exemplo" |
+| 1.3 | Criar a conta `fluxo-teste` com senha forte | Painel "Visão geral" com boas-vindas e botão "Cadastrar veículo" |
 | 1.4 | Sair | Volta para "Entrar na conta" |
 | 1.5 | Entrar com senha errada | Mensagem de erro; continua deslogado |
 | 1.6 | Entrar com a senha correta | Painel |
@@ -53,14 +53,14 @@ Achados:
 
 | Passo | Ação | Resultado esperado |
 |---|---|---|
-| 2.1 | Painel > "Cadastrar veículo de exemplo" | Formulário com Exemplo, Compacto, 2022 e motorização preenchidos; km e aquisição em branco; "Conferida na documentação" desmarcado |
-| 2.2 | Informar 45.000 km e cadastrar | Página do veículo com 45.000 km |
-| 2.3 | Editar: versão "Like" | Dado salvo |
+| 2.1 | Painel > "Cadastrar veículo" | Formulário em branco, sem dados pré-preenchidos; "Conferida na documentação" desmarcado |
+| 2.2 | Cadastrar "Exemplo Compacto 2020" com 45.000 km | Página do veículo com 45.000 km |
+| 2.3 | Editar: versão "Básica" | Dado salvo |
 | 2.4 | Registrar km: 44.000 com data de 30 dias atrás (origem: documento) | Aceita (retroativa coerente); atual continua 45.000 |
 | 2.5 | Registrar km: 46.000 com data de 15 dias atrás | Rejeitado: maior que a leitura posterior |
 | 2.6 | Histórico de km: filtrar origem "Documento" | Só a leitura de 44.000 |
-| 2.7 | Cadastrar um segundo veículo e trocar o veículo ativo | Painel troca de carro; dados separados |
-| 2.8 | Voltar o veículo ativo para o Compacto | Painel do Compacto |
+| 2.7 | Cadastrar "Exemplo Sedã 2015" (120.000 km) e trocar o veículo ativo | Painel troca de carro; dados separados |
+| 2.8 | Voltar o veículo ativo para o Exemplo Compacto | Painel do Exemplo Compacto |
 
 Achados (todos corrigidos):
 
@@ -71,6 +71,7 @@ Achados (todos corrigidos):
 - Na edição de veículo, "Garagem" e "Cancelar" levavam a destinos trocados; agora ambos voltam ao veículo.
 - Veículo sem observações mostrava a seção vazia; agora mostra "Sem observações.".
 - Sem motorização informada, apareciam "não informada" e "a confirmar" juntos.
+- Revalidado após a remoção dos atalhos com dados pessoais: o cadastro começa sempre em branco.
 
 ## 3. Serviços
 
@@ -83,11 +84,11 @@ Achados (todos corrigidos):
 | 3.5 | Lista de serviços: busca por nome de peça e filtro por categoria | Resultados atualizam sem recarregar a página |
 | 3.6 | Excluir o serviço de 3.1 | Confirmação antes; removido |
 
-## 4. Problemas e o caso da porta
+## 4. Problemas
 
 | Passo | Ação | Resultado esperado |
 |---|---|---|
-| 4.1 | Problemas > "Registrar esse caso" (porta traseira) | Formulário com o relato, diagnóstico, solução e causas descartadas (combustível, bomba, injeção); data em branco |
+| 4.1 | Relatar um caso já resolvido: ruído, "barulho de água balançando ao frear", local "Porta traseira", situação "Resolvido", diagnóstico "água acumulada na porta", solução "drenos desobstruídos", causa descartada "tanque de combustível", data em branco | Formulário aceita o relato sem data |
 | 4.2 | Salvar | Problema resolvido, com "Causas já descartadas" em destaque |
 | 4.3 | Relatar problema: vibração no volante, gravidade alta | Aviso de gravidade alta; cartão do assistente com urgência |
 | 4.4 | Adicionar acompanhamento sem texto e sem situação | Erro pedindo texto ou situação |

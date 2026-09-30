@@ -21,7 +21,6 @@ Antes de alterar regras, testes ou anexos, leia [docs/licoes-aprendidas.md](docs
 ### Problemas e sintomas
 - Sintoma em botões, descrição livre, local, gravidade percebida e acompanhamento até a resolução.
 - Diagnóstico, **causas já descartadas** e solução ficam registrados para não repetir investigações. Um serviço pode resolver um problema.
-- Atalho para registrar o caso já resolvido da água na porta traseira (não relacionado a combustível, bomba ou injeção).
 
 ### Plano de manutenção
 - Itens com tipo — **recomendação do fabricante**, **preventiva pelo uso**, **inspeção sugerida** e **precisa de diagnóstico profissional** —, prioridade, motivo, fonte e custo estimado.
@@ -49,7 +48,7 @@ Antes de alterar regras, testes ou anexos, leia [docs/licoes-aprendidas.md](docs
 
 ## Primeiros passos
 
-1. Crie a conta e cadastre o carro (há um atalho para o Compacto).
+1. Crie a conta e cadastre o carro.
 2. Informe a quilometragem atual.
 3. Em **Plano > Ver sugestões**, adicione os itens e preencha os intervalos do manual, indicando a fonte.
 4. Registre os serviços antigos de que se lembrar (deixe a data em branco se não souber).
@@ -80,11 +79,7 @@ py -3.13 -m venv .venv
 
 Abra http://127.0.0.1:8000 e crie sua conta no navegador. A criação da primeira conta só aceita conexões locais e fecha depois que existe um usuário; faça essa etapa antes de qualquer exposição externa.
 
-Os atalhos do Compacto e do caso da porta apenas preenchem formulários; nada é salvo sem confirmação e nada é presumido (km, aquisição, combustível). Textos pessoais do atalho ficam em `.local/presets.json`, fora do versionamento. Campos aceitos: `brand`, `model`, `version`, `model_year`, `manufacture_year`, `engine`, `fuel`, `plate`, `notes`:
-
-```json
-{"exemplo": {"notes": "Descreva aqui trajetos e condições de uso."}}
-```
+O fuso horário padrão é `America/Sao_Paulo`. Para outro, defina `RODAGEM_TIME_ZONE` antes de iniciar (ex.: `$env:RODAGEM_TIME_ZONE = "America/Manaus"`).
 
 Para uso local prolongado, após `collectstatic`, prefira o servidor WSGI instalado:
 
