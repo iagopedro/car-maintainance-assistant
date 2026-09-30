@@ -18,7 +18,7 @@ Endereço: http://127.0.0.1:8001. Os fluxos são sequenciais: cada um usa os dad
 | # | Fluxo | Situação | Data |
 |---|---|---|---|
 | 1 | Primeiro acesso e conta | Aprovado | 30/09/2026 |
-| 2 | Garagem e quilometragem | Pendente | |
+| 2 | Garagem e quilometragem | Aprovado | 30/09/2026 |
 | 3 | Serviços | Pendente | |
 | 4 | Problemas e o caso da porta | Pendente | |
 | 5 | Plano de manutenção | Pendente | |
@@ -61,6 +61,16 @@ Achados:
 | 2.6 | Histórico de km: filtrar origem "Documento" | Só a leitura de 44.000 |
 | 2.7 | Cadastrar um segundo veículo e trocar o veículo ativo | Painel troca de carro; dados separados |
 | 2.8 | Voltar o veículo ativo para o Compacto | Painel do Compacto |
+
+Achados (todos corrigidos):
+
+- O seletor de veículo ativo trocava de carro a cada seta do teclado (mudança de contexto ao alterar o campo). Agora a troca só acontece pelo botão "Trocar".
+- Na Garagem, os botões "Usar no painel" não diziam de qual veículo eram, e nada indicava o carro ativo. Agora o nome acessível inclui o veículo, e o ativo mostra "No painel".
+- Contadores em títulos ("Garagem 2", grupos do plano) ganharam a unidade para leitores de tela.
+- A quilometragem do painel era lida como "45.000km".
+- Na edição de veículo, "Garagem" e "Cancelar" levavam a destinos trocados; agora ambos voltam ao veículo.
+- Veículo sem observações mostrava a seção vazia; agora mostra "Sem observações.".
+- Sem motorização informada, apareciam "não informada" e "a confirmar" juntos.
 
 ## 3. Serviços
 
