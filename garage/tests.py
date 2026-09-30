@@ -158,6 +158,24 @@ class GarageWebTests(TestCase):
         self.assertNotContains(response, '<script>alert("unsafe")</script>')
         self.assertContains(response, "&lt;script&gt;")
 
+    def test_accessible_vehicle_switching(self):
+        second = Vehicle.objects.create(owner=self.owner, brand="Honda", model="Fit", model_year=2015)
+        self.client.post(f"/veiculos/{second.pk}/ativar/")
+        dashboard = self.client.get("/")
+        self.assertNotContains(dashboard, "data-autosubmit")
+        self.assertContains(dashboard, 'Trocar<span class="visually-hidden"> veículo ativo</span>', html=False)
+        garage = self.client.get("/veiculos/")
+        self.assertContains(garage, f'Usar no painel<span class="visually-hidden"> ({self.vehicle})</span>')
+        self.assertNotContains(garage, f'Usar no painel<span class="visually-hidden"> ({second})</span>')
+        self.assertContains(garage, "No painel")
+        self.assertContains(garage, '<span class="visually-hidden"> veículos</span>')
+
+    def test_vehicle_without_notes_or_engine(self):
+        response = self.client.get(f"/veiculos/{self.vehicle.pk}/")
+        self.assertContains(response, "Sem observações.")
+        self.assertNotContains(response, "A confirmar</span>")
+        self.assertNotContains(self.client.get("/"), "Motorização a confirmar")
+
     def test_login_logout_and_rate_limit(self):
         self.client.logout()
         response = self.client.post("/conta/entrar/", {"username": "driver", "password": "A-test-only-password-947!"})

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}{% if creating %}Novo veículo{% else %}Editar veículo{% endif %}{% endblock %}
 {% block content %}
-<a class="back-link" href="{% if vehicle %}{% url 'vehicle_detail' vehicle.pk %}{% else %}{% url 'vehicle_list' %}{% endif %}"><i data-lucide="arrow-left" aria-hidden="true"></i>Garagem</a>
+<a class="back-link" href="{% if vehicle %}{% url 'vehicle_detail' vehicle.pk %}{% else %}{% url 'vehicle_list' %}{% endif %}"><i data-lucide="arrow-left" aria-hidden="true"></i>{% if vehicle %}{{ vehicle }}{% else %}Garagem{% endif %}</a>
 <div class="page-heading"><div><p class="eyebrow">CADASTRO DO VEÍCULO</p><h1>{% if creating %}Novo veículo{% else %}Editar veículo{% endif %}</h1></div></div>
 <form method="post" class="editor-form">{% csrf_token %}
   {% if form.non_field_errors %}<div class="notice notice-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
@@ -9,6 +9,6 @@
   <fieldset><legend>Motorização e aquisição</legend><div class="form-grid">{% include 'partials/field.html' with field=form.engine %}{% include 'partials/field.html' with field=form.fuel %}{% include 'partials/field.html' with field=form.acquisition_date %}</div>{% include 'partials/field.html' with field=form.engine_verified %}</fieldset>
   {% if creating %}<fieldset><legend>Primeira leitura <span class="optional">opcional</span></legend><div class="form-grid">{% include 'partials/field.html' with field=form.initial_kilometers %}{% include 'partials/field.html' with field=form.reading_date %}</div></fieldset>{% endif %}
   <fieldset><legend>Contexto do veículo</legend>{% include 'partials/field.html' with field=form.notes %}</fieldset>
-  <div class="form-actions"><a class="btn btn-outline-secondary" href="{% url 'vehicle_list' %}">Cancelar</a><button class="btn btn-primary" type="submit"><i data-lucide="check" aria-hidden="true"></i>{% if creating %}Cadastrar veículo{% else %}Salvar alterações{% endif %}</button></div>
+  <div class="form-actions"><a class="btn btn-outline-secondary" href="{% if vehicle %}{% url 'vehicle_detail' vehicle.pk %}{% else %}{% url 'vehicle_list' %}{% endif %}">Cancelar</a><button class="btn btn-primary" type="submit"><i data-lucide="check" aria-hidden="true"></i>{% if creating %}Cadastrar veículo{% else %}Salvar alterações{% endif %}</button></div>
 </form>
 {% endblock %}

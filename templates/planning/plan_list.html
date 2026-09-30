@@ -12,7 +12,7 @@
   {% if attention_count %}<div class="results-summary"><span>{{ attention_count }} ite{{ attention_count|pluralize:"m,ns" }} próximo{{ attention_count|pluralize }} ou atrasado{{ attention_count|pluralize }}</span>{% if estimate_total is not None %}<span>Estimativa: <strong>{{ estimate_total|brl }}</strong> ({{ estimate_count }} com valor estimado)</span>{% endif %}</div>{% endif %}
   {% for key, label, plans in groups %}
   <section class="plan-group" id="grupo-{{ key }}" aria-labelledby="titulo-{{ key }}">
-    <h2 id="titulo-{{ key }}" class="group-title">{{ label }} <span class="heading-count">{{ plans|length }}</span></h2>
+    <h2 id="titulo-{{ key }}" class="group-title">{{ label }} <span class="heading-count">{{ plans|length }}<span class="visually-hidden"> ite{{ plans|length|pluralize:"m,ns" }}</span></span></h2>
     {% if key == 'unknown' %}<p class="group-hint">Sem data ou km: registre a última realização ou informe o intervalo do manual. Se não souber, peça avaliação na próxima revisão.</p>{% endif %}
     <ul class="record-list">{% for plan in plans %}{% include 'planning/partials/plan_item.html' %}{% endfor %}</ul>
   </section>

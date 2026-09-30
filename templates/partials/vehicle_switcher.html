@@ -2,7 +2,7 @@
 <form method="post" action="{% url 'vehicle_switch' %}" class="vehicle-switcher">{% csrf_token %}
   <input type="hidden" name="next" value="{{ request.get_full_path }}">
   <label for="vehicle-switch" class="visually-hidden">Veículo ativo</label>
-  <select id="vehicle-switch" name="vehicle" class="form-select" data-autosubmit>{% for option in owner_vehicles %}<option value="{{ option.pk }}" {% if option.pk == active_vehicle.pk %}selected{% endif %}>{{ option }}</option>{% endfor %}</select>
-  <button class="btn btn-outline-secondary js-hide" type="submit">Trocar</button>
+  <select id="vehicle-switch" name="vehicle" class="form-select">{% for option in owner_vehicles %}<option value="{{ option.pk }}" {% if option.pk == active_vehicle.pk %}selected{% endif %}>{{ option }}</option>{% endfor %}</select>
+  <button class="btn btn-outline-secondary" type="submit">Trocar<span class="visually-hidden"> veículo ativo</span></button>
 </form>
 {% elif active_vehicle %}<span class="vehicle-chip"><i data-lucide="car-front" aria-hidden="true"></i>{{ active_vehicle }}</span>{% endif %}

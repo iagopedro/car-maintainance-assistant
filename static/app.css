@@ -47,7 +47,7 @@ h3 { font-size: 17px; font-weight: 700; }
 .odometer-display::after { content: ""; position: absolute; right: -32px; top: 0; height: 100%; width: 80px; transform: skewX(-24deg); border-left: 1px solid #cad8ce; border-right: 1px solid #cad8ce; pointer-events: none; }
 .odometer-display p { font-size: 10px; font-weight: 800; margin-bottom: 10px; color: #456354; }
 .odometer-display > div { font-size: 48px; font-weight: 750; line-height: 1.35; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-.odometer-display small { font-size: 19px; font-weight: 500; margin-left: 9px; }
+.odometer-display small { font-size: 19px; font-weight: 500; }
 .odometer-display > span { font-size: 11px; color: #456354; }
 .odometer-display .unknown-value { font-size: 24px; }
 .metrics-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-bottom: 1px solid var(--line); padding: 28px 0; }
@@ -179,6 +179,8 @@ h3 { font-size: 17px; font-weight: 700; }
 .vehicle-switcher .form-select { min-height: 44px; max-width: 260px; font-size: 13px; }
 .vehicle-chip { display: inline-flex; gap: 8px; align-items: center; color: var(--muted); font-size: 12px; font-weight: 650; }
 .vehicle-chip svg { width: 18px; height: 18px; }
+.card-actions .tag { display: inline-flex; align-items: center; gap: 4px; }
+.card-actions .tag svg { width: 14px; height: 14px; }
 .notice-info { background: #edf3f7; border-color: #3f6f8f; color: #264a61; }
 .notice-warning { background: #fff6e8; border-color: #b76b12; color: #74450c; }
 .btn-outline-danger { --bs-btn-color: #a52828; --bs-btn-border-color: #e3b9b5; --bs-btn-hover-bg: #fbeceb; --bs-btn-hover-color: #8c1f1f; --bs-btn-hover-border-color: #d9a29d; background: #fff; }
