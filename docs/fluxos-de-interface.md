@@ -20,7 +20,7 @@ Endereço: http://127.0.0.1:8001. Os fluxos são sequenciais: cada um usa os dad
 | 1 | Primeiro acesso e conta | Aprovado | 30/09/2026 |
 | 2 | Garagem e quilometragem | Aprovado | 30/09/2026 |
 | 3 | Serviços | Aprovado | 30/09/2026 |
-| 4 | Problemas | Pendente | |
+| 4 | Problemas | Aprovado | 30/09/2026 |
 | 5 | Plano de manutenção | Pendente | |
 | 6 | Alertas e preferências | Pendente | |
 | 7 | Linha do tempo e finanças | Pendente | |
@@ -103,6 +103,14 @@ Achados (todos corrigidos):
 | 4.5 | Acompanhamento "levei à oficina", situação "Em diagnóstico" | Linha do tempo do problema atualizada |
 | 4.6 | "Registrar o serviço que resolveu": balanceamento | Problema passa a "Resolvido", ligado ao serviço |
 | 4.7 | Abas Em aberto / Resolvidos / Todos | Contagens e listas coerentes |
+
+Achados (corrigidos, exceto o último):
+
+- O sinal "−" do botão de detalhes aparecia como "âˆ’": o `app.css` é servido sem charset e o navegador o lia como Windows-1252. CSS e JS próprios agora só têm ASCII (escapes `\2212`, `\2014`), com teste.
+- Acompanhamento vazio: o erro era geral do formulário, o foco voltava ao topo e nenhum campo ficava inválido. Agora o erro fica em "O que aconteceu?", que recebe o foco.
+- Contadores das abas ("Em aberto 0", abas do plano) ganharam a unidade para leitores de tela.
+- Solução sem data nem serviço mostrava um parágrafo vazio.
+- Melhoria possível (não feita): com gravidade alta, o aviso e o cartão do assistente repetem quase o mesmo texto.
 
 ## 5. Plano de manutenção
 
