@@ -3,7 +3,6 @@
 {% block content %}
 <a class="back-link" href="{% if creating %}{% url 'problem_list' %}{% else %}{% url 'problem_detail' problem.pk %}{% endif %}"><i data-lucide="arrow-left" aria-hidden="true"></i>{% if creating %}Problemas{% else %}{{ problem.display_title }}{% endif %}</a>
 <div class="page-heading"><div><p class="eyebrow">{{ vehicle|upper }}</p><h1>{% if creating %}Relatar problema{% else %}Editar problema{% endif %}</h1><p class="lead-text">Descreva o que percebeu. Não é preciso saber a causa.</p></div></div>
-{% if creating and request.GET.modelo == 'agua-porta' %}<div class="notice notice-info" role="note"><i data-lucide="info" aria-hidden="true"></i><span>Preenchido com o seu relato do caso da porta traseira. Confira o texto e informe a data e a quilometragem, se lembrar.</span></div>{% endif %}
 <form method="post" enctype="multipart/form-data" class="editor-form quick-form">{% csrf_token %}
   {% if form.non_field_errors %}<div class="notice notice-error" role="alert">{% for error in form.non_field_errors %}{{ error }} {% endfor %}</div>{% endif %}
   {% include 'partials/field.html' with field=form.symptom %}

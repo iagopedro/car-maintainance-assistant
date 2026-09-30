@@ -81,7 +81,7 @@ class PlanTestCase(TestCase):
         user_model = get_user_model()
         cls.owner = user_model.objects.create_user(username="owner")
         cls.other = user_model.objects.create_user(username="other")
-        cls.vehicle = Vehicle.objects.create(owner=cls.owner, brand="Exemplo", model="Compacto", model_year=2022)
+        cls.vehicle = Vehicle.objects.create(owner=cls.owner, brand="Exemplo", model="Compacto", model_year=2020)
         cls.second = Vehicle.objects.create(owner=cls.owner, brand="Toyota", model="Etios", model_year=2018)
         cls.foreign = Vehicle.objects.create(owner=cls.other, brand="Other", model="Private", model_year=2020)
 
@@ -136,16 +136,16 @@ class AlertTests(PlanTestCase):
 
     def test_problem_warranty_and_recurrence_alerts(self):
         Problem.objects.create(vehicle=self.vehicle, symptom="noise", description="Barulho", severity="high",
-                               reported_on=TODAY() - timedelta(days=40), location="Porta traseira")
+                               reported_on=TODAY() - timedelta(days=40), location="Traseira esquerda")
         resolved = Problem.objects.create(vehicle=self.vehicle, symptom="noise", description="Antes", status="resolved",
-                                          reported_on=TODAY() - timedelta(days=200), location="porta traseira ")
+                                          reported_on=TODAY() - timedelta(days=200), location="traseira esquerda ")
         ProblemUpdate.objects.create(problem=resolved, date=TODAY() - timedelta(days=150), status="resolved")
         ServiceRecord.objects.create(vehicle=self.vehicle, category="brakes", title="Pastilhas",
                                      date=TODAY() - timedelta(days=80), warranty_until=TODAY() + timedelta(days=5))
         titles = [alert.title for alert in self.alerts()]
         self.assertIn("Problema em aberto: Barulho", titles)
         self.assertIn("Sem acompanhamento há 40 dias: Barulho", titles)
-        self.assertIn("Sintoma recorrente: Ruído · Porta traseira", titles)
+        self.assertIn("Sintoma recorrente: Ruído · Traseira esquerda", titles)
         self.assertIn("Garantia termina em 5 dias: Pastilhas", titles)
         high = next(alert for alert in self.alerts() if alert.title.startswith("Problema em aberto"))
         self.assertIn("não é um diagnóstico", high.message)
@@ -215,7 +215,7 @@ class CompletionTests(PlanTestCase):
                                                         **parts_data()})
         self.assertFalse(ServiceRecord.objects.filter(plan=other_plan).exists())
         self.assertIn(response.status_code, (200, 302))
-        plan = MaintenancePlan.objects.create(vehicle=self.vehicle, title="Compacto")
+        plan = MaintenancePlan.objects.create(vehicle=self.vehicle, title="Item próprio")
         foreign_service = ServiceRecord.objects.create(vehicle=self.second, category="oil")
         self.client.post(f"/plano/{plan.pk}/vincular/", {"service": foreign_service.pk})
         foreign_service.refresh_from_db()

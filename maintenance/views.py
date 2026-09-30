@@ -19,19 +19,6 @@ from .forms import (LOCATION_SUGGESTIONS, SERVICE_SUGGESTIONS, AttachmentUploadF
 from .models import Attachment, Problem, ServiceRecord
 from .services import add_problem_update, delete_service, save_problem, save_service
 
-DOOR_WATER_PRESET = {
-    "symptom": Problem.Symptom.NOISE,
-    "title": "Ruído de líquido na traseira ao frear",
-    "description": "Ruído de líquido na região traseira durante frenagens.",
-    "location": "Porta traseira",
-    "category": "body",
-    "status": Problem.Status.RESOLVED,
-    "diagnosis": "Água acumulada dentro da porta traseira.",
-    "solution": "Drenos da porta desobstruídos e água "
-                "retirada. O ruído deixou de ocorrer.",
-    "ruled_out": "Não relacionado ao sistema de combustível, bomba ou injeção.",
-}
-
 
 def active_vehicle_or_redirect(request):
     vehicle = get_active_vehicle(request)
@@ -200,7 +187,6 @@ def problem_list(request):
     context = {
         "vehicle": vehicle, "page_obj": page, "filter_form": form, "querystring": querystring, "view": view,
         "counts": counts, "views": ProblemFilterForm.VIEWS, "section": "problems",
-        "show_door_preset": vehicle.model.strip().lower() == "exemplo" and counts["all"] == 0,
     }
     template = "maintenance/problem_results.html" if request.headers.get("HX-Request") == "true" else "maintenance/problem_list.html"
     return render(request, template, context)
@@ -225,7 +211,7 @@ def problem_create(request):
     vehicle = active_vehicle_or_redirect(request)
     if not vehicle:
         return redirect("vehicle_create")
-    initial = DOOR_WATER_PRESET if request.GET.get("modelo") == "agua-porta" else {"reported_on": timezone.localdate()}
+    initial = {"reported_on": timezone.localdate()}
     if request.GET.get("descricao"):
         initial = {"reported_on": timezone.localdate(), "description": request.GET["descricao"][:2000],
                    "location": request.GET.get("local", "")[:120]}

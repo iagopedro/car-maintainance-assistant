@@ -1,11 +1,8 @@
-import json
-import tempfile
 from datetime import timedelta
-from pathlib import Path
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.test import TestCase, override_settings
+from django.test import TestCase
 from django.utils import timezone
 
 from .models import OdometerReading, Vehicle
@@ -17,7 +14,7 @@ class OdometerTests(TestCase):
     def setUpTestData(cls):
         cls.owner = get_user_model().objects.create_user(username="owner")
         cls.other = get_user_model().objects.create_user(username="other")
-        cls.vehicle = Vehicle.objects.create(owner=cls.owner, brand="Exemplo", model="Compacto", model_year=2022)
+        cls.vehicle = Vehicle.objects.create(owner=cls.owner, brand="Exemplo", model="Compacto", model_year=2020)
 
     def record(self, days, kilometers, **kwargs):
         return record_reading(owner=kwargs.get("owner", self.owner), vehicle_id=self.vehicle.pk,
@@ -72,14 +69,14 @@ class GarageWebTests(TestCase):
     def setUpTestData(cls):
         cls.owner = get_user_model().objects.create_user(username="driver", password="A-test-only-password-947!")
         cls.other = get_user_model().objects.create_user(username="other")
-        cls.vehicle = Vehicle.objects.create(owner=cls.owner, brand="Exemplo", model="Compacto", model_year=2022)
+        cls.vehicle = Vehicle.objects.create(owner=cls.owner, brand="Exemplo", model="Compacto", model_year=2020)
         cls.foreign_vehicle = Vehicle.objects.create(owner=cls.other, brand="Other", model="Private", model_year=2021)
 
     def setUp(self):
         self.client.force_login(self.owner)
 
     def test_pages_render(self):
-        paths = ["/", "/veiculos/", "/veiculos/novo/", "/veiculos/novo/?preset=exemplo", "/conta/senha/",
+        paths = ["/", "/veiculos/", "/veiculos/novo/", "/conta/senha/",
                  f"/veiculos/{self.vehicle.pk}/", f"/veiculos/{self.vehicle.pk}/editar/",
                  f"/veiculos/{self.vehicle.pk}/quilometragem/", f"/veiculos/{self.vehicle.pk}/quilometragem/nova/"]
         for path in paths:
@@ -98,7 +95,7 @@ class GarageWebTests(TestCase):
         self.assertNotContains(self.client.get("/veiculos/"), "Private")
 
     def test_create_vehicle_with_unknown_mileage(self):
-        response = self.client.post("/veiculos/novo/", {"brand": "Exemplo", "model": "Compacto", "model_year": 2022, "fuel": "unknown"})
+        response = self.client.post("/veiculos/novo/", {"brand": "Exemplo", "model": "Compacto", "model_year": 2020, "fuel": "unknown"})
         self.assertEqual(response.status_code, 302)
         vehicle = Vehicle.objects.order_by("-pk").first()
         self.assertEqual(vehicle.owner, self.owner)
@@ -106,20 +103,20 @@ class GarageWebTests(TestCase):
         self.assertEqual(self.client.session["active_vehicle_id"], vehicle.pk)
 
     def test_create_vehicle_with_zero_mileage(self):
-        response = self.client.post("/veiculos/novo/", {"brand": "Exemplo", "model": "Compacto", "model_year": 2022, "fuel": "flex",
+        response = self.client.post("/veiculos/novo/", {"brand": "Exemplo", "model": "Compacto", "model_year": 2020, "fuel": "flex",
                                    "initial_kilometers": 0, "reading_date": timezone.localdate().isoformat()})
         self.assertEqual(response.status_code, 302)
         self.assertEqual(Vehicle.objects.order_by("-pk").first().latest_reading.kilometers, 0)
 
     def test_invalid_initial_reading_does_not_create_vehicle(self):
         count = Vehicle.objects.count()
-        response = self.client.post("/veiculos/novo/", {"brand": "Exemplo", "model": "Compacto", "model_year": 2022,
+        response = self.client.post("/veiculos/novo/", {"brand": "Exemplo", "model": "Compacto", "model_year": 2020,
                                    "fuel": "flex", "initial_kilometers": 1000})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(Vehicle.objects.count(), count)
 
     def test_owner_cannot_be_changed_by_form(self):
-        self.client.post(f"/veiculos/{self.vehicle.pk}/editar/", {"brand": "Exemplo", "model": "Compacto", "model_year": 2022,
+        self.client.post(f"/veiculos/{self.vehicle.pk}/editar/", {"brand": "Exemplo", "model": "Compacto", "model_year": 2020,
                          "fuel": "flex", "owner": self.other.pk})
         self.vehicle.refresh_from_db()
         self.assertEqual(self.vehicle.owner, self.owner)
@@ -207,25 +204,8 @@ class SetupTests(TestCase):
         self.assertFalse(get_user_model().objects.exists())
 
 
-class LocalPresetTests(TestCase):
-    def setUp(self):
+class GenericProjectTests(TestCase):
+    def test_vehicle_form_starts_empty(self):
         self.client.force_login(get_user_model().objects.create_user(username="owner"))
-        directory = tempfile.TemporaryDirectory()
-        self.addCleanup(directory.cleanup)
-        self.presets = Path(directory.name) / "presets.json"
-        override = override_settings(LOCAL_PRESETS_FILE=self.presets)
-        override.enable()
-        self.addCleanup(override.disable)
-
-    def test_missing_file_keeps_generic_preset(self):
-        response = self.client.get("/veiculos/novo/?preset=exemplo")
-        self.assertContains(response, "Motorização e combustível a confirmar")
-
-    def test_local_notes_are_used_and_unknown_fields_ignored(self):
-        self.presets.write_text(json.dumps({"exemplo": {"notes": "Uso local privado", "owner": 999}}), encoding="utf-8")
-        response = self.client.get("/veiculos/novo/?preset=exemplo")
-        self.assertContains(response, "Uso local privado")
-
-    def test_invalid_file_is_ignored(self):
-        self.presets.write_text("{invalid", encoding="utf-8")
-        self.assertEqual(self.client.get("/veiculos/novo/?preset=exemplo").status_code, 200)
+        form = self.client.get("/veiculos/novo/", {"preset": "qualquer"}).context["form"]
+        self.assertFalse(any(form[name].value() for name in ("brand", "model", "model_year", "engine", "notes")))

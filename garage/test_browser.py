@@ -41,18 +41,21 @@ class BrowserJourneyTests(StaticLiveServerTestCase):
             page.locator("#id_password1").fill("Browser-test-only-83746!")
             page.locator("#id_password2").fill("Browser-test-only-83746!")
             page.get_by_role("button", name="Criar conta", exact=True).click()
-            page.get_by_role("link", name="Cadastrar veículo de exemplo").click()
-            expect(page.locator("#id_model")).to_have_value("Compacto")
+            page.get_by_role("link", name="Cadastrar veículo").click()
+            expect(page.locator("#id_brand")).to_have_value("")
             expect(page.locator("#id_initial_kilometers")).to_have_value("")
             expect(page.locator("#id_engine_verified")).not_to_be_checked()
+            page.locator("#id_brand").fill("Exemplo")
+            page.locator("#id_model").fill("Compacto")
+            page.locator("#id_model_year").fill("2020")
             page.locator("#id_initial_kilometers").fill("45000")
             page.get_by_role("button", name="Cadastrar veículo").click()
-            expect(page.get_by_role("heading", name="Exemplo Compacto 2022")).to_be_visible()
+            expect(page.get_by_role("heading", name="Exemplo Compacto 2020")).to_be_visible()
             vehicle_path = urlparse(page.url).path
             page.get_by_role("link", name="Editar dados").click()
             page.locator("#id_version").fill("Versão ainda a confirmar")
             page.get_by_role("button", name="Salvar alterações").click()
-            expect(page.get_by_text("Exemplo Compacto 2022", exact=False).first).to_be_visible()
+            expect(page.get_by_text("Exemplo Compacto 2020", exact=False).first).to_be_visible()
             page.get_by_role("link", name="Registrar km").click()
             page.locator("#id_kilometers").fill("44000")
             page.locator("#id_date").fill(previous_date)
@@ -121,7 +124,7 @@ class BrowserJourneyTests(StaticLiveServerTestCase):
         artifacts.mkdir(exist_ok=True)
         password = "Mobile-test-only-58302!"
         owner = get_user_model().objects.create_user("mobile-owner", password=password)
-        vehicle = Vehicle.objects.create(owner=owner, brand="Exemplo", model="Compacto", model_year=2022)
+        vehicle = Vehicle.objects.create(owner=owner, brand="Exemplo", model="Compacto", model_year=2020)
         OdometerReading.objects.create(vehicle=vehicle, date=timezone.localdate() - timedelta(days=30), kilometers=44000)
         errors, failed_responses = [], []
         with sync_playwright() as playwright:
@@ -162,8 +165,14 @@ class BrowserJourneyTests(StaticLiveServerTestCase):
             service_path = urlparse(page.url).path
 
             page.locator(".bottom-nav").get_by_role("link", name="Problemas").click()
-            page.get_by_role("link", name="Registrar esse caso").click()
-            expect(page.locator(".more-details")).to_have_attribute("open", "")
+            page.locator(".page-heading").get_by_role("link", name="Relatar problema").click()
+            page.locator(".chip").filter(has_text="Ruído").click()
+            page.locator("#id_description").fill("Rangido no painel em piso irregular.")
+            page.locator("#id_reported_on").fill("")
+            page.locator(".more-details summary").click()
+            page.locator("#id_status").select_option("resolved")
+            page.locator("#id_ruled_out").fill("Não era a suspensão.")
+            page.locator("#id_solution").fill("Presilha do painel substituída.")
             page.get_by_role("button", name="Salvar problema").click()
             expect(page.get_by_text("Causas já descartadas")).to_be_visible()
             expect(page.locator(".tag-row .status")).to_have_text("Resolvido")
@@ -220,7 +229,7 @@ class BrowserJourneyTests(StaticLiveServerTestCase):
         artifacts.mkdir(exist_ok=True)
         password = "Plan-test-only-71925!"
         owner = get_user_model().objects.create_user("plan-owner", password=password)
-        vehicle = Vehicle.objects.create(owner=owner, brand="Exemplo", model="Compacto", model_year=2022)
+        vehicle = Vehicle.objects.create(owner=owner, brand="Exemplo", model="Compacto", model_year=2020)
         today = timezone.localdate()
         OdometerReading.objects.create(vehicle=vehicle, date=today - timedelta(days=10), kilometers=44000)
         errors, failed_responses = [], []
@@ -314,7 +323,7 @@ class BrowserJourneyTests(StaticLiveServerTestCase):
         user_model = get_user_model()
         owner = user_model.objects.create_user("data-owner", password=password)
         user_model.objects.create_user("new-install", password=password)
-        vehicle = Vehicle.objects.create(owner=owner, brand="Exemplo", model="Compacto", model_year=2022)
+        vehicle = Vehicle.objects.create(owner=owner, brand="Exemplo", model="Compacto", model_year=2020)
         OdometerReading.objects.create(vehicle=vehicle, date=today - timedelta(days=90), kilometers=40000)
         OdometerReading.objects.create(vehicle=vehicle, date=today - timedelta(days=1), kilometers=43000)
         ServiceRecord.objects.create(vehicle=vehicle, category="oil", kind="preventive", title="Troca de óleo",
@@ -406,12 +415,12 @@ class BrowserJourneyTests(StaticLiveServerTestCase):
         artifacts.mkdir(exist_ok=True)
         password = "Assistant-test-only-26814!"
         owner = get_user_model().objects.create_user("assistant-owner", password=password)
-        vehicle = Vehicle.objects.create(owner=owner, brand="Exemplo", model="Compacto", model_year=2022)
+        vehicle = Vehicle.objects.create(owner=owner, brand="Exemplo", model="Compacto", model_year=2020)
         OdometerReading.objects.create(vehicle=vehicle, date=timezone.localdate() - timedelta(days=5), kilometers=45000)
-        Problem.objects.create(vehicle=vehicle, symptom="noise", title="Ruído de líquido ao frear",
-                               description="Ruído de líquido na região traseira durante frenagens.", location="Porta traseira",
-                               status="resolved", solution="Água drenada da porta traseira.",
-                               ruled_out="Não relacionado ao sistema de combustível, bomba ou injeção.")
+        Problem.objects.create(vehicle=vehicle, symptom="noise", title="Barulho de água ao frear",
+                               description="Barulho de água balançando nas frenagens.", location="Porta traseira",
+                               status="resolved", solution="Drenos da porta desobstruídos.",
+                               ruled_out="Não era o tanque de combustível.")
         errors, failed_responses = [], []
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch()

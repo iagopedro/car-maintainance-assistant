@@ -47,7 +47,7 @@ class ReportTestCase(TestCase):
         user_model = get_user_model()
         cls.owner = user_model.objects.create_user(username="owner")
         cls.other = user_model.objects.create_user(username="other")
-        cls.vehicle = Vehicle.objects.create(owner=cls.owner, brand="Exemplo", model="Compacto", model_year=2022)
+        cls.vehicle = Vehicle.objects.create(owner=cls.owner, brand="Exemplo", model="Compacto", model_year=2020)
         cls.foreign = Vehicle.objects.create(owner=cls.other, brand="Other", model="Private", model_year=2020)
 
     def setUp(self):
@@ -330,7 +330,7 @@ class BackupTests(ReportTestCase):
         restored = self.client.post("/dados/restaurar/", {"backup": SimpleUploadedFile("b.zip", content), "confirm": "on"},
                                     follow=True)
         self.assertContains(restored, "Backup restaurado: 1 veículo(s)")
-        self.assertContains(restored, "Exemplo Compacto 2022")
+        self.assertContains(restored, "Exemplo Compacto 2020")
 
     def test_command_writes_backup(self):
         self.populate()

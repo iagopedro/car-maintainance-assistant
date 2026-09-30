@@ -151,7 +151,7 @@ class ProblemForm(StyledFormMixin, forms.ModelForm):
         widgets = {
             "symptom": forms.RadioSelect, "severity": forms.RadioSelect, "reported_on": date_widget(),
             "resolved_on": date_widget(), "location": forms.TextInput(attrs={"list": "location-suggestions", "autocomplete": "off"}),
-            "description": forms.Textarea(attrs={"placeholder": "Ex.: barulho de líquido na traseira ao frear"}),
+            "description": forms.Textarea(attrs={"placeholder": "Ex.: rangido na frente ao passar em lombadas"}),
         }
         help_texts = {
             "reported_on": UNKNOWN_DATE_HELP, "title": "Opcional. Sem título, usamos o início da descrição.",

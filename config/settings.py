@@ -83,15 +83,13 @@ AXES_LOCKOUT_PARAMETERS = [["username", "ip_address"]]
 AXES_RESET_ON_SUCCESS = True
 AXES_LOCKOUT_TEMPLATE = "registration/locked.html"
 LANGUAGE_CODE = "pt-br"
-TIME_ZONE = "America/Sao_Paulo"
+TIME_ZONE = os.environ.get("RODAGEM_TIME_ZONE", "America/Sao_Paulo")
 USE_I18N = True
 USE_TZ = True
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-# Personal form defaults (e.g. usage notes) stay out of the public repository.
-LOCAL_PRESETS_FILE = BASE_DIR / ".local" / "presets.json"
 # Attachments are private: served only by an owner-checked view, never by a public media URL.
 MEDIA_ROOT = Path(os.environ.get("RODAGEM_MEDIA_ROOT") or BASE_DIR / "media")
 DATA_UPLOAD_MAX_NUMBER_FILES = 10

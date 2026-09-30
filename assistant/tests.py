@@ -47,7 +47,7 @@ class EngineTestCase(TestCase):
         user_model = get_user_model()
         cls.owner = user_model.objects.create_user(username="owner")
         cls.other = user_model.objects.create_user(username="other")
-        cls.vehicle = Vehicle.objects.create(owner=cls.owner, brand="Exemplo", model="Compacto", model_year=2022)
+        cls.vehicle = Vehicle.objects.create(owner=cls.owner, brand="Exemplo", model="Compacto", model_year=2020)
         cls.foreign = Vehicle.objects.create(owner=cls.other, brand="Other", model="Private", model_year=2020)
 
     def setUp(self):
@@ -59,11 +59,11 @@ class EngineTestCase(TestCase):
 
 class EngineTests(EngineTestCase):
     def test_door_water_history_avoids_repeated_investigation(self):
-        Problem.objects.create(vehicle=self.vehicle, symptom="noise", title="Ruído de líquido ao frear",
-                               description="Ruído de líquido na região traseira durante frenagens.",
+        Problem.objects.create(vehicle=self.vehicle, symptom="noise", title="Barulho de água ao frear",
+                               description="Barulho de água balançando nas frenagens.",
                                location="Porta traseira", status="resolved",
                                solution="Drenos da porta desobstruídos e água drenada.",
-                               ruled_out="Não relacionado ao sistema de combustível, bomba ou injeção.")
+                               ruled_out="Não era o tanque de combustível.")
         analysis = self.analyze("noise", "Barulho de líquido na traseira ao frear", "Porta traseira")
         self.assertEqual(analysis.causes[0].key, "door_water")
         self.assertIn("fuel_slosh", [cause.key for cause in analysis.discarded])

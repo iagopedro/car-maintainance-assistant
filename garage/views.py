@@ -20,7 +20,6 @@ from planning.rules import add_months
 from .context import ACTIVE_VEHICLE_KEY, get_active_vehicle
 from .forms import LoginForm, ReadingFilterForm, ReadingForm, SetupForm, VehicleCreateForm, VehicleForm
 from .models import Installation, OdometerReading, Vehicle
-from .presets import load_local_preset
 from .services import record_reading
 
 
@@ -88,14 +87,7 @@ def vehicle_list(request):
 
 @login_required
 def vehicle_create(request):
-    initial = {}
-    if request.GET.get("preset") == "exemplo":
-        initial = {
-            "brand": "Exemplo", "model": "Compacto", "model_year": 2022, "engine": "1.0 Flex",
-            "notes": "Motorização e combustível a confirmar na documentação.",
-            **load_local_preset("exemplo"),
-        }
-    form = VehicleCreateForm(request.POST or None, initial=initial)
+    form = VehicleCreateForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         with transaction.atomic():
             vehicle = form.save(commit=False)

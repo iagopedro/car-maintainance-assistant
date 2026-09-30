@@ -10,6 +10,6 @@
   <a class="register-option" href="{% url 'assistant_symptom' %}"><span class="register-icon"><i data-lucide="sparkles" aria-hidden="true"></i></span><span class="register-text"><strong>Não sei o que é: perguntar ao assistente</strong><span>Descreva o sintoma e veja possibilidades, urgência e perguntas para o mecânico</span></span><i data-lucide="chevron-right" aria-hidden="true"></i></a>
 </div>
 {% else %}
-<section class="empty-state"><i data-lucide="car-front" aria-hidden="true"></i><h2>Cadastre um veículo primeiro</h2><a class="btn btn-primary" href="{% url 'vehicle_create' %}?preset=exemplo">Cadastrar veículo de exemplo</a></section>
+<section class="empty-state"><i data-lucide="car-front" aria-hidden="true"></i><h2>Cadastre um veículo primeiro</h2><a class="btn btn-primary" href="{% url 'vehicle_create' %}"><i data-lucide="plus" aria-hidden="true"></i>Cadastrar veículo</a></section>
 {% endif %}
 {% endblock %}

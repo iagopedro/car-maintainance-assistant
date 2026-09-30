@@ -49,7 +49,7 @@ class MediaTestCase(TestCase):
         user_model = get_user_model()
         cls.owner = user_model.objects.create_user(username="owner")
         cls.other = user_model.objects.create_user(username="other")
-        cls.vehicle = Vehicle.objects.create(owner=cls.owner, brand="Exemplo", model="Compacto", model_year=2022)
+        cls.vehicle = Vehicle.objects.create(owner=cls.owner, brand="Exemplo", model="Compacto", model_year=2020)
         cls.second = Vehicle.objects.create(owner=cls.owner, brand="Toyota", model="Etios", model_year=2018)
         cls.foreign = Vehicle.objects.create(owner=cls.other, brand="Other", model="Private", model_year=2020)
 
@@ -229,13 +229,12 @@ class ProblemTests(MediaTestCase):
         self.assertEqual(problem.display_title, "Barulho ao frear")
         self.assertEqual(self.create_problem(description="").status_code, 200)
 
-    def test_door_preset_is_offered_and_saved_as_resolved_history(self):
-        self.assertContains(self.client.get("/problemas/"), "água na porta traseira")
-        form = self.client.get("/problemas/novo/?modelo=agua-porta")
-        self.assertContains(form, "Água acumulada dentro da porta traseira.")
-        self.assertContains(form, "Não relacionado ao sistema de combustível, bomba ou injeção.")
-        from .views import DOOR_WATER_PRESET
-        self.client.post("/problemas/novo/?modelo=agua-porta", {**DOOR_WATER_PRESET, "severity": "unknown"})
+    def test_resolved_history_without_dates(self):
+        self.client.post("/problemas/novo/", {
+            "symptom": "noise", "title": "Rangido no painel", "description": "Rangido no painel em piso irregular.",
+            "location": "Painel", "category": "body", "status": "resolved", "severity": "unknown",
+            "diagnosis": "Presilha solta.", "solution": "Presilha substituída.", "ruled_out": "Não era a suspensão.",
+        })
         problem = Problem.objects.get()
         self.assertEqual(problem.status, Problem.Status.RESOLVED)
         self.assertIsNone(problem.reported_on)
@@ -243,15 +242,8 @@ class ProblemTests(MediaTestCase):
         detail = self.client.get(f"/problemas/{problem.pk}/")
         self.assertContains(detail, "Causas já descartadas")
         self.assertContains(detail, "Data desconhecida")
-        self.assertNotContains(self.client.get("/problemas/"), "Registrar esse caso")
-        self.assertContains(self.client.get("/problemas/", {"view": "closed"}), "Ruído de líquido")
-        self.assertNotContains(self.client.get("/problemas/"), "Ruído de líquido")
-
-    def test_preset_hint_only_for_example(self):
-        session = self.client.session
-        session["active_vehicle_id"] = self.second.pk
-        session.save()
-        self.assertNotContains(self.client.get("/problemas/"), "Registrar esse caso")
+        self.assertContains(self.client.get("/problemas/", {"view": "closed"}), "Rangido no painel")
+        self.assertNotContains(self.client.get("/problemas/"), "Rangido no painel")
 
     def test_follow_up_until_resolution_and_reopening(self):
         problem = Problem.objects.create(vehicle=self.vehicle, symptom="noise", description="Barulho",

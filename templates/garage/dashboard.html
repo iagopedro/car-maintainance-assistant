@@ -37,6 +37,6 @@
   </aside>
 </div>
 {% else %}
-<section class="welcome-section"><div><p class="eyebrow">SUA GARAGEM ESTÁ PRONTA</p><h2>O primeiro passo<br>é o seu carro.</h2><p>Nenhum veículo cadastrado.</p><div class="vehicle-actions"><a class="btn btn-primary" href="{% url 'vehicle_create' %}?preset=exemplo"><i data-lucide="plus" aria-hidden="true"></i>Cadastrar veículo de exemplo</a><a class="text-link" href="{% url 'vehicle_create' %}">Outro veículo<i data-lucide="arrow-right" aria-hidden="true"></i></a></div><p class="restore-hint">Tem um backup do Rodagem? <a href="{% url 'data_home' %}">Restaurar seus dados</a>.</p></div><div class="road-art" aria-hidden="true"></div></section>
+<section class="welcome-section"><div><p class="eyebrow">SUA GARAGEM ESTÁ PRONTA</p><h2>O primeiro passo<br>é o seu carro.</h2><p>Nenhum veículo cadastrado.</p><div class="vehicle-actions"><a class="btn btn-primary" href="{% url 'vehicle_create' %}"><i data-lucide="plus" aria-hidden="true"></i>Cadastrar veículo</a></div><p class="restore-hint">Tem um backup do Rodagem? <a href="{% url 'data_home' %}">Restaurar seus dados</a>.</p></div><div class="road-art" aria-hidden="true"></div></section>
 {% endif %}
 {% endblock %}
