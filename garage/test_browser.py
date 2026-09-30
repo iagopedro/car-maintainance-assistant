@@ -396,3 +396,81 @@ class BrowserJourneyTests(StaticLiveServerTestCase):
             self.assertEqual(errors, [])
             self.assertEqual(failed_responses, [])
             browser.close()
+
+    def test_assistant_journey(self):
+        from playwright.sync_api import expect, sync_playwright
+
+        from maintenance.models import Problem
+
+        artifacts = Path("artifacts")
+        artifacts.mkdir(exist_ok=True)
+        password = "Assistant-test-only-26814!"
+        owner = get_user_model().objects.create_user("assistant-owner", password=password)
+        vehicle = Vehicle.objects.create(owner=owner, brand="Exemplo", model="Compacto", model_year=2022)
+        OdometerReading.objects.create(vehicle=vehicle, date=timezone.localdate() - timedelta(days=5), kilometers=45000)
+        Problem.objects.create(vehicle=vehicle, symptom="noise", title="Ruído de líquido ao frear",
+                               description="Ruído de líquido na região traseira durante frenagens.", location="Porta traseira",
+                               status="resolved", solution="Água drenada da porta traseira.",
+                               ruled_out="Não relacionado ao sistema de combustível, bomba ou injeção.")
+        errors, failed_responses = [], []
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch()
+            page = browser.new_page(viewport={"width": 390, "height": 844}, locale="pt-BR", is_mobile=True, has_touch=True)
+            page.on("pageerror", lambda error: errors.append(str(error)))
+            page.on("response", lambda response: failed_responses.append(response.url) if response.status >= 400 else None)
+            page.goto(self.live_server_url + "/conta/entrar/")
+            page.locator("#id_username").fill("assistant-owner")
+            page.locator("#id_password").fill(password)
+            page.get_by_role("button", name="Entrar", exact=True).click()
+            expect(page.locator(".assistant-banner")).to_be_visible()
+
+            page.locator(".bottom-nav").get_by_role("link", name="Registrar").click()
+            page.get_by_role("link", name="Não sei o que é: perguntar ao assistente").click()
+            page.locator(".chip").filter(has_text="Ruído").click()
+            page.locator("#id_description").fill("Barulho de líquido na traseira quando freio")
+            page.locator("#id_location").fill("Porta traseira")
+            page.get_by_role("button", name="Analisar").click()
+            expect(page.locator(".urgency-box")).to_be_visible()
+            expect(page.locator(".cause-item").first).to_contain_text("Água acumulada dentro da porta")
+            expect(page.locator(".discarded-box")).to_contain_text("Movimento do combustível no tanque")
+            expect(page.locator(".questions-box")).to_contain_text("Da outra vez a solução foi")
+            page.screenshot(path=str(artifacts / "assistant-symptom-mobile.png"), full_page=True, animations="disabled")
+            page.get_by_role("link", name="Salvar como problema").click()
+            expect(page.locator("#id_description")).to_have_value("Barulho de líquido na traseira quando freio")
+            page.get_by_role("button", name="Salvar problema").click()
+            expect(page.locator(".assistant-card")).to_contain_text("Assistente: urgência")
+            page.get_by_role("link", name="Ver possibilidades e perguntas para o mecânico").click()
+            expect(page.locator(".cause-item").first).to_contain_text("Água acumulada")
+
+            page.get_by_role("link", name="Mais opções").click()
+            page.get_by_role("link", name="Assistente de manutenção").click()
+            page.get_by_role("link", name="Informar perfil").click()
+            page.get_by_text("Fica parado vários dias seguidos").click()
+            page.get_by_role("button", name="Salvar perfil").click()
+            expect(page.locator(".tip-item").first).to_contain_text("Teste da bateria")
+            page.locator(".tip-item").first.get_by_role("button", name="Adicionar ao plano").click()
+            expect(page.get_by_text("adicionado ao plano")).to_be_visible()
+            expect(page.locator(".tip-item").first).to_contain_text("No plano")
+            page.screenshot(path=str(artifacts / "assistant-home-mobile.png"), full_page=True, animations="disabled")
+
+            page.get_by_role("link", name="Resumo para o mecânico").click()
+            expect(page.locator(".summary-problem")).to_contain_text("Barulho de líquido")
+            expect(page.locator(".summary-block").first).to_contain_text("fica parado vários dias seguidos")
+            page.emulate_media(media="print")
+            expect(page.locator(".bottom-nav")).to_be_hidden()
+            expect(page.locator(".site-header")).to_be_hidden()
+            page.emulate_media(media="screen")
+
+            for width in (360, 1024, 1180, 1220, 1300, 1440, 1500):
+                page.set_viewport_size({"width": width, "height": 800})
+                for path in ("/", "/assistente/", "/assistente/sintoma/", "/assistente/resumo/", "/historico/", "/plano/"):
+                    page.goto(self.live_server_url + path)
+                    with self.subTest(width=width, path=path):
+                        self.assertFalse(has_horizontal_overflow(page))
+                        expect(page.locator("h1")).to_be_visible()
+            page.set_viewport_size({"width": 1280, "height": 900})
+            page.goto(self.live_server_url + "/assistente/")
+            page.screenshot(path=str(artifacts / "assistant-home-desktop.png"), full_page=True, animations="disabled")
+            self.assertEqual(errors, [])
+            self.assertEqual(failed_responses, [])
+            browser.close()
