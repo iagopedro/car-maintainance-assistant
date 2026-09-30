@@ -1,0 +1,48 @@
+{% extends 'base.html' %}{% load maintenance_tags %}
+{% block title %}Assistente de manutenção{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">{{ vehicle|upper }}</p><h1>Assistente de manutenção</h1><p class="lead-text">Uma revisão do carro a partir do plano, do histórico e do perfil de uso.{% if review.km %} {{ review.km }} km registrados{% endif %}{% if review.age %}, cerca de {{ review.age }} ano{{ review.age|pluralize }} desde o ano-modelo{% endif %}.</p></div>
+  <div class="heading-actions">{% include 'partials/vehicle_switcher.html' %}</div></div>
+<div class="assistant-actions">
+  <a class="register-option" href="{% url 'assistant_symptom' %}"><span class="register-icon problem-icon"><i data-lucide="stethoscope" aria-hidden="true"></i></span><span class="register-text"><strong>Descrever um sintoma</strong><span>Possibilidades, urgência e perguntas</span></span><i data-lucide="chevron-right" aria-hidden="true"></i></a>
+  <a class="register-option" href="{% url 'assistant_summary' %}"><span class="register-icon"><i data-lucide="printer" aria-hidden="true"></i></span><span class="register-text"><strong>Resumo para o mecânico</strong><span>Carro, problemas, histórico e perguntas numa página</span></span><i data-lucide="chevron-right" aria-hidden="true"></i></a>
+</div>
+
+{% if review.problems %}
+<section class="detail-section" aria-labelledby="problems-title"><h2 id="problems-title">Problemas em aberto</h2>
+  <ul class="record-list">{% for problem, analysis in review.problems %}<li><a class="record-item" href="{% url 'assistant_problem' problem.pk %}"><span class="record-icon problem-icon"><i data-lucide="{{ problem.symptom|symptom_icon }}" aria-hidden="true"></i></span><span class="record-main"><strong>{{ problem.display_title }}</strong><span>{{ analysis.reasons|first }}</span></span><span class="record-side"><span class="urgency-tag urgency-{{ analysis.urgency }}">Urgência {{ analysis.urgency_label|lower }}</span></span></a></li>{% endfor %}</ul>
+</section>
+{% endif %}
+
+<section class="detail-section" aria-labelledby="recommended-title"><h2 id="recommended-title">Manutenções recomendadas agora</h2>
+  {% if review.attention_count %}
+  {% for kind, label, plans in review.groups %}{% if plans %}
+  <div class="kind-group"><h3 class="kind-title kind-{{ kind }}">{{ label }}</h3>
+    {% if kind == 'manufacturer' %}<p class="group-hint">Itens "a validar" ainda não foram conferidos no manual.</p>{% elif kind == 'diagnosis' %}<p class="group-hint">Precisam de avaliação de um profissional antes de qualquer troca.</p>{% endif %}
+    <ul class="record-list compact">{% for plan in plans %}{% include 'planning/partials/plan_item.html' %}{% endfor %}</ul></div>
+  {% endif %}{% endfor %}
+  {% else %}<p class="muted">Nenhum item do plano está atrasado, chegando ou aguardando diagnóstico.</p>{% endif %}
+</section>
+
+<section class="detail-section" aria-labelledby="history-title"><h2 id="history-title">Itens sem histórico confirmado</h2>
+  <p class="group-hint">Sem registro de quando foram feitos. Se não souber, peça avaliação na próxima revisão.</p>
+  {% if review.no_history %}<ul class="record-list compact">{% for plan in review.no_history %}{% include 'planning/partials/plan_item.html' %}{% endfor %}</ul>{% endif %}
+  {% if review.time_sensitive %}<div class="time-box"><strong>Fora do plano e dependem também do tempo, não só do km</strong><ul>{% for suggestion in review.time_sensitive %}<li>{{ suggestion.title }}</li>{% endfor %}</ul><p>Com o carro envelhecendo, vale confirmar esses itens mesmo rodando pouco.</p></div>{% endif %}
+  {% if review.missing_suggestions %}<a class="text-link" href="{% url 'plan_suggestions' %}">Ver itens comuns ainda fora do plano ({{ review.missing_suggestions }})<i data-lucide="arrow-right" aria-hidden="true"></i></a>{% endif %}
+</section>
+
+<section class="detail-section" aria-labelledby="usage-title">
+  <div class="section-heading"><h2 id="usage-title">Pelo seu perfil de uso</h2><a class="text-link" href="{% url 'assistant_profile' %}">{% if profile %}Editar perfil{% else %}Informar perfil{% endif %}<i data-lucide="arrow-right" aria-hidden="true"></i></a></div>
+  {% if review.tips %}
+  <ul class="tip-list">{% for tip in review.tips %}<li class="tip-item"><div><strong>{{ tip.title }}</strong><span class="tip-kind">{{ tip.kind_label }}</span><p>{{ tip.reason }}</p></div>
+    {% if tip.in_plan %}<span class="tag">No plano</span>{% else %}<form method="post" action="{% url 'assistant_add_tip' tip.key %}">{% csrf_token %}<button class="btn btn-outline-secondary" type="submit"><i data-lucide="plus" aria-hidden="true"></i>Adicionar ao plano</button></form>{% endif %}</li>{% endfor %}</ul>
+  {% else %}<p class="muted">{% if profile %}Nenhuma condição especial marcada.{% else %}Conte como o carro é usado (trânsito, trajetos curtos, carga, estradas ruins) para receber sugestões preventivas.{% endif %}</p>{% endif %}
+</section>
+
+{% if review.parts %}
+<section class="detail-section" aria-labelledby="parts-title"><h2 id="parts-title">Peças trocadas nos últimos 12 meses</h2>
+  <ul class="parts-list">{% for service, part in review.parts %}<li><strong>{{ part.name }}</strong><span>{% if part.brand_model %}{{ part.brand_model }} · {% endif %}{{ service.date|date:'d/m/Y' }}{% if service.warranty_active %} · garantia até {{ service.warranty_until|date:'d/m/Y' }}{% endif %}</span></li>{% endfor %}</ul>
+</section>
+{% endif %}
+<p class="disclaimer">O assistente usa regras gerais e os seus registros, sem inventar intervalos de manutenção. Não substitui a avaliação de um mecânico.</p>
+{% endblock %}

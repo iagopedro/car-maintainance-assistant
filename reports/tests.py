@@ -14,6 +14,7 @@ from django.core.management import call_command
 from django.test import TestCase, override_settings
 from django.utils import timezone
 
+from assistant.models import UsageProfile
 from garage.models import OdometerReading, Vehicle
 from maintenance.models import Attachment, Problem, ProblemUpdate, ServicePart, ServiceRecord
 from planning.models import AlertPreferences, MaintenancePlan
@@ -214,6 +215,7 @@ class BackupTests(ReportTestCase):
         prefs = AlertPreferences.for_user(self.owner)
         prefs.km_ahead = 700
         prefs.save()
+        UsageProfile.objects.create(vehicle=self.vehicle, parked_days=True, frequent_load=True)
         return reading
 
     def backup_upload(self, user=None):
@@ -227,8 +229,9 @@ class BackupTests(ReportTestCase):
         restored_user = get_user_model().objects.create_user(username="restored")
         counts = restore_backup(restored_user, upload)
         self.assertEqual(counts, {"vehicles": 1, "readings": 2, "plans": 1, "services": 1, "parts": 1, "problems": 1,
-                                  "problem_updates": 1, "attachments": 1})
+                                  "problem_updates": 1, "usage_profiles": 1, "attachments": 1})
         vehicle = Vehicle.objects.get(owner=restored_user)
+        self.assertEqual(vehicle.usage_profile.active_flags, ["parked_days", "frequent_load"])
         service = vehicle.services.get()
         self.assertEqual((service.title, service.total_cost, service.kilometers), ("Troca", Decimal("180.50"), 41000))
         self.assertEqual(service.plan.title, "Óleo")

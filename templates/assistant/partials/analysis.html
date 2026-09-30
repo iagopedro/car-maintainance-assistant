@@ -1,0 +1,20 @@
+<section class="analysis" aria-labelledby="analysis-title">
+  <div class="urgency-box urgency-{{ analysis.urgency }}">
+    <span>Urgência estimada</span><strong id="analysis-title">{{ analysis.urgency_label }}</strong>
+    <p>{{ analysis.advice }}</p>
+    <ul>{% for reason in analysis.reasons %}<li>{{ reason }}</li>{% endfor %}</ul>
+  </div>
+  {% if analysis.history %}<div class="history-box"><h3><i data-lucide="history" aria-hidden="true"></i>O que o histórico mostra</h3><ul>{% for note in analysis.history %}<li>{{ note }}</li>{% endfor %}</ul></div>{% endif %}
+  <h3 class="analysis-heading">Possibilidades comuns para o que foi descrito</h3>
+  <p class="group-hint">Não são diagnósticos: ajudam a orientar a conversa com o mecânico.</p>
+  <ol class="cause-list">{% for cause in analysis.causes %}
+    <li class="cause-item{% if cause.normal %} is-normal{% endif %}">
+      <div class="cause-head"><strong>{{ cause.title }}</strong><span class="cause-kind kind-{{ cause.kind }}{% if cause.normal %} kind-normal{% endif %}">{{ cause.kind_label }}</span></div>
+      <p>{{ cause.explanation }}</p>
+      <p class="cause-checks"><i data-lucide="wrench" aria-hidden="true"></i>O que verificar: {{ cause.checks }}</p>
+    </li>{% endfor %}
+  </ol>
+  {% if analysis.discarded %}<div class="discarded-box"><h3><i data-lucide="ban" aria-hidden="true"></i>Já descartado em relato anterior</h3><ul>{% for cause in analysis.discarded %}<li><strong>{{ cause.title }}</strong>: não repita esta investigação sem um motivo novo.</li>{% endfor %}</ul></div>{% endif %}
+  <div class="questions-box"><h3><i data-lucide="message-circle-question" aria-hidden="true"></i>Perguntas para levar ao mecânico</h3><ol>{% for question in analysis.questions %}<li>{{ question }}</li>{% endfor %}</ol></div>
+  <p class="disclaimer">O assistente usa regras gerais e os seus registros. Ele não examina o carro e não substitui a avaliação de um mecânico.</p>
+</section>

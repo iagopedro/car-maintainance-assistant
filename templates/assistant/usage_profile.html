@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}Perfil de uso{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'assistant_home' %}"><i data-lucide="arrow-left" aria-hidden="true"></i>Assistente</a>
+<div class="page-heading"><div><p class="eyebrow">{{ vehicle|upper }}</p><h1>Como o carro é usado?</h1><p class="lead-text">Marque o que se aplica. Algumas condições podem enquadrar o uso como severo no manual e pedem mais atenção a certos itens.</p></div></div>
+<form method="post" class="editor-form">{% csrf_token %}
+  <fieldset><legend class="visually-hidden">Condições de uso</legend>
+    {% for field in form %}{% include 'partials/field.html' %}{% endfor %}
+  </fieldset>
+  <div class="form-actions"><a class="btn btn-outline-secondary" href="{% url 'assistant_home' %}">Cancelar</a><button class="btn btn-primary" type="submit"><i data-lucide="check" aria-hidden="true"></i>Salvar perfil</button></div>
+</form>
+{% endblock %}

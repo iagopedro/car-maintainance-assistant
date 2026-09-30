@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Descrever sintoma{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'assistant_home' %}"><i data-lucide="arrow-left" aria-hidden="true"></i>Assistente</a>
+<div class="page-heading"><div><p class="eyebrow">{{ vehicle|upper }}</p><h1>Descrever um sintoma</h1><p class="lead-text">Conte o que percebeu. O assistente mostra possibilidades comuns, a urgência estimada e o que perguntar ao mecânico.</p></div></div>
+<form method="post" class="editor-form quick-form">{% csrf_token %}
+  {% include 'partials/field.html' with field=form.symptom %}
+  {% include 'partials/field.html' with field=form.description %}
+  <div class="form-grid">{% include 'partials/field.html' with field=form.location %}</div>
+  {% include 'partials/field.html' with field=form.severity %}
+  <datalist id="location-suggestions">{% for suggestion in form.location_suggestions %}<option value="{{ suggestion }}"></option>{% endfor %}</datalist>
+  <div class="form-actions"><button class="btn btn-primary" type="submit"><i data-lucide="sparkles" aria-hidden="true"></i>Analisar</button></div>
+</form>
+{% if analysis %}
+<div id="resultado" class="analysis-result">
+  {% include 'assistant/partials/analysis.html' %}
+  <div class="form-actions sticky-actions"><a class="btn btn-outline-secondary" href="{% url 'assistant_symptom' %}">Nova análise</a><a class="btn btn-primary" href="{{ save_url }}"><i data-lucide="save" aria-hidden="true"></i>Salvar como problema</a></div>
+</div>
+{% endif %}
+{% endblock %}

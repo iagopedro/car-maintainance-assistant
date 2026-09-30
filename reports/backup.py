@@ -14,6 +14,7 @@ from django.db.models import Q
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
+from assistant.models import UsageProfile
 from garage.models import OdometerReading, Vehicle
 from maintenance.attachments import EXTENSIONS, MAX_FILE_SIZE, detect_content_type, safe_display_name
 from maintenance.models import Attachment, Problem, ProblemUpdate, ServicePart, ServiceRecord
@@ -42,6 +43,7 @@ SECTIONS = [
                            "severity", "status", "diagnosis", "ruled_out", "solution", "resolved_on"],
      {"vehicle": "vehicles", "resolved_by_service": "services"}, "vehicle__owner"),
     ("problem_updates", ProblemUpdate, ["date", "status", "note"], {"problem": "problems"}, "problem__vehicle__owner"),
+    ("usage_profiles", UsageProfile, UsageProfile.FLAGS, {"vehicle": "vehicles"}, "vehicle__owner"),
 ]
 ORDERING = {"readings": ["date", "pk"]}
 PREFERENCE_FIELDS = ["km_ahead", "days_ahead", "reading_reminder_days", "show_high", "show_medium", "show_low"]

@@ -1,0 +1,42 @@
+{% extends 'base.html' %}{% load humanize maintenance_tags %}
+{% block title %}Resumo para o mecânico{% endblock %}
+{% block content %}
+<div class="no-print"><a class="back-link" href="{% url 'assistant_home' %}"><i data-lucide="arrow-left" aria-hidden="true"></i>Assistente</a></div>
+<div class="page-heading"><div><p class="eyebrow">RESUMO PARA O MECÂNICO · {{ today|date:'d/m/Y' }}</p><h1>{{ vehicle }}</h1></div>
+  <div class="heading-actions no-print"><button class="btn btn-primary" type="button" data-print><i data-lucide="printer" aria-hidden="true"></i>Imprimir ou salvar PDF</button></div></div>
+<section class="summary-block"><h2>Veículo</h2>
+  <dl class="summary-grid">
+    <div><dt>Marca e modelo</dt><dd>{{ vehicle.brand }} {{ vehicle.model }} {{ vehicle.version }}</dd></div>
+    <div><dt>Ano-modelo</dt><dd>{{ vehicle.model_year }}</dd></div>
+    <div><dt>Motor</dt><dd>{{ vehicle.engine|default:'Não informado' }}{% if not vehicle.engine_verified %} (a confirmar){% endif %}</dd></div>
+    <div><dt>Combustível</dt><dd>{{ vehicle.get_fuel_display }}</dd></div>
+    <div><dt>Quilometragem</dt><dd>{% if latest %}{{ latest.kilometers|intcomma }} km em {{ latest.date|date:'d/m/Y' }}{% else %}Não informada{% endif %}</dd></div>
+    {% if usage_labels %}<div><dt>Uso informado</dt><dd>{{ usage_labels|join:'; ' }}</dd></div>{% endif %}
+  </dl>
+</section>
+<section class="summary-block"><h2>Problemas em aberto</h2>
+  {% for problem, analysis, updates in problems %}
+  <article class="summary-problem">
+    <h3>{{ problem.display_title }} <span class="urgency-tag urgency-{{ analysis.urgency }}">Urgência estimada {{ analysis.urgency_label|lower }}</span></h3>
+    <p><strong>Sintoma:</strong> {{ problem.get_symptom_display }}{% if problem.location %} · {{ problem.location }}{% endif %} · desde {{ problem.reported_on|date:'d/m/Y'|default:'data desconhecida' }}{% if problem.kilometers is not None %} ({{ problem.kilometers|intcomma }} km){% endif %}</p>
+    <p><strong>Relato:</strong> {{ problem.description }}</p>
+    {% if problem.ruled_out %}<p><strong>Já descartado:</strong> {{ problem.ruled_out }}</p>{% endif %}
+    {% if updates %}<p><strong>Acompanhamento:</strong> {% for update in updates %}{{ update.date|date:'d/m/Y' }}: {{ update.note|default:update.get_status_display }}{% if not forloop.last %}; {% endif %}{% endfor %}</p>{% endif %}
+    {% if analysis.history %}<p><strong>Histórico relacionado:</strong> {{ analysis.history|join:' ' }}</p>{% endif %}
+    <p><strong>Possibilidades comuns (não é diagnóstico):</strong> {% for cause in analysis.causes %}{{ cause.title }}{% if not forloop.last %}; {% endif %}{% endfor %}.</p>
+    <p><strong>Perguntas:</strong></p><ol>{% for question in analysis.questions|slice:":5" %}<li>{{ question }}</li>{% endfor %}</ol>
+  </article>
+  {% empty %}<p>Nenhum problema em aberto.</p>{% endfor %}
+</section>
+<section class="summary-block"><h2>Manutenções pendentes do plano</h2>
+  {% if review.attention_count %}<ul>{% for kind, label, plans in review.groups %}{% for plan in plans %}<li><strong>{{ plan.title }}</strong> ({{ label|lower }}): {{ plan.due.summary }}{% if plan.needs_validation %} · intervalo a validar no manual{% endif %}</li>{% endfor %}{% endfor %}</ul>
+  {% else %}<p>Nenhum item atrasado ou chegando.</p>{% endif %}
+  {% if review.no_history %}<p><strong>Sem histórico confirmado (pedir avaliação):</strong> {% for plan in review.no_history %}{{ plan.title }}{% if not forloop.last %}; {% endif %}{% endfor %}.</p>{% endif %}
+</section>
+<section class="summary-block"><h2>Últimos serviços</h2>
+  {% if services %}<table class="table summary-table"><thead><tr><th scope="col">Data</th><th scope="col">Km</th><th scope="col">Serviço</th><th scope="col">Peças</th><th scope="col">Oficina</th></tr></thead><tbody>
+  {% for service in services %}<tr><td>{{ service.date|date:'d/m/Y'|default:'—' }}</td><td>{% if service.kilometers is not None %}{{ service.kilometers|intcomma }}{% else %}—{% endif %}</td><td>{{ service.display_title }}</td><td>{% for part in service.parts.all %}{{ part.name }}{% if part.brand_model %} ({{ part.brand_model }}){% endif %}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}</td><td>{{ service.workshop|default:'—' }}</td></tr>{% endfor %}
+  </tbody></table>{% else %}<p>Nenhum serviço registrado.</p>{% endif %}
+</section>
+<p class="disclaimer">Gerado pelo Rodagem a partir dos registros do proprietário. As possibilidades listadas são gerais e não substituem a avaliação profissional.</p>
+{% endblock %}

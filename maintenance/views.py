@@ -9,6 +9,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 from django.views.decorators.vary import vary_on_headers
 
+from assistant.engine import analyze_problem
 from garage.context import get_active_vehicle
 from planning.models import MaintenancePlan
 
@@ -225,6 +226,13 @@ def problem_create(request):
     if not vehicle:
         return redirect("vehicle_create")
     initial = DOOR_WATER_PRESET if request.GET.get("modelo") == "agua-porta" else {"reported_on": timezone.localdate()}
+    if request.GET.get("descricao"):
+        initial = {"reported_on": timezone.localdate(), "description": request.GET["descricao"][:2000],
+                   "location": request.GET.get("local", "")[:120]}
+        if request.GET.get("sintoma") in Problem.Symptom.values:
+            initial["symptom"] = request.GET["sintoma"]
+        if request.GET.get("gravidade") in Problem.Severity.values:
+            initial["severity"] = request.GET["gravidade"]
     return problem_form_view(request, vehicle, Problem(vehicle=vehicle), initial)
 
 
@@ -245,6 +253,7 @@ def problem_detail(request, pk):
     return render(request, "maintenance/problem_detail.html", {
         "problem": problem, "vehicle": problem.vehicle, "updates": problem.updates.all(), "update_form": form,
         "attachments": problem.attachments.all(), "upload_form": AttachmentUploadForm(), "section": "problems",
+        "analysis": analyze_problem(problem, timezone.localdate()) if problem.is_active else None,
     })
 
 
