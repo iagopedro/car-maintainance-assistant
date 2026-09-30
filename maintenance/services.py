@@ -13,19 +13,29 @@ CLOSED_STATUSES = {Problem.Status.RESOLVED, Problem.Status.CLOSED}
 
 def sync_service_reading(service):
     """Mirror the service odometer into the vehicle history; returns a reading that must be deleted, if any."""
+    # One reading per day: a higher service value replaces a manual one; outcome feeds the user message.
     own = service.odometer_reading
-    same_day_exists = service.date and service.vehicle.readings.filter(date=service.date).exclude(
-        pk=own.pk if own else None).exists()
-    if service.date is None or service.kilometers is None or same_day_exists:
+    service.reading_outcome = None
+    if service.date is None or service.kilometers is None:
         service.odometer_reading = None
         return own
-    reading = own or OdometerReading(vehicle=service.vehicle, source=OdometerReading.Source.SERVICE)
+    same_day = service.vehicle.readings.filter(date=service.date).exclude(pk=own.pk if own else None).first()
+    if same_day:
+        if hasattr(same_day, "service") or service.kilometers <= same_day.kilometers:
+            service.odometer_reading = None
+            service.reading_outcome = ("kept", same_day.kilometers)
+            return own
+        service.reading_outcome = ("replaced", same_day.kilometers)
+        stale, reading = own, same_day
+        reading.source = OdometerReading.Source.SERVICE
+    else:
+        stale, reading = None, own or OdometerReading(vehicle=service.vehicle, source=OdometerReading.Source.SERVICE)
     reading.date, reading.kilometers = service.date, service.kilometers
     reading.notes = f"Registrada pelo serviço: {service.display_title}"[:500]
     reading.full_clean()
     reading.save()
     service.odometer_reading = reading
-    return None
+    return stale
 
 
 def resolve_with_service(problem, service):

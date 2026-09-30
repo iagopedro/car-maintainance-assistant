@@ -20,6 +20,10 @@ from .models import Attachment, Problem, ServiceRecord
 from .services import add_problem_update, delete_service, save_problem, save_service
 
 
+def km(value):
+    return f"{value:,}".replace(",", ".")
+
+
 def active_vehicle_or_redirect(request):
     vehicle = get_active_vehicle(request)
     if not vehicle:
@@ -108,9 +112,20 @@ def service_form_view(request, vehicle, service):
             map_validation_error(form, error)
         else:
             messages.success(request, "Serviço registrado." if creating else "Serviço atualizado.")
+            outcome, day_km = service.reading_outcome or (None, None)
+            day = service.date.strftime("%d/%m/%Y") if service.date else ""
             latest = service.vehicle.latest_reading
-            if latest and latest.pk == service.odometer_reading_id and latest != previous_reading:
-                messages.success(request, f"Quilometragem atual atualizada para {latest.kilometers:,} km.".replace(",", "."))
+            if outcome == "kept":
+                messages.warning(request, f"Já existe uma leitura de {km(day_km)} km em {day}. A quilometragem do "
+                                          f"serviço ({km(service.kilometers)} km) não foi usada no histórico de km.")
+            elif outcome == "replaced" and latest and latest.pk == service.odometer_reading_id:
+                messages.success(request, f"Quilometragem atual atualizada para {km(latest.kilometers)} km "
+                                          f"(substitui a leitura de {km(day_km)} km do mesmo dia).")
+            elif outcome == "replaced":
+                messages.success(request, f"Leitura de {day} atualizada para {km(service.kilometers)} km "
+                                          f"(substitui {km(day_km)} km).")
+            elif latest and latest.pk == service.odometer_reading_id and latest != previous_reading:
+                messages.success(request, f"Quilometragem atual atualizada para {km(latest.kilometers)} km.")
             return redirect("service_detail", pk=service.pk)
     workshops = vehicle.services.exclude(workshop="").values_list("workshop", flat=True).distinct().order_by("workshop")[:50]
     return render(request, "maintenance/service_form.html", {

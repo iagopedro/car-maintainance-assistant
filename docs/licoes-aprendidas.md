@@ -30,6 +30,7 @@ Registro do que já custou tempo nos incrementos 1 e 2. Leia antes de mudar regr
 
 - A quilometragem atual é derivada da última leitura por data, sem campo duplicado no veículo.
 - Uma leitura por veículo por dia (restrição no banco).
+- Serviço com km em dia que já tem leitura: o maior valor prevalece (a leitura manual passa a ser do serviço); se o do serviço for menor ou igual, a leitura fica e o usuário é avisado. Nunca descartar dado em silêncio.
 - `garage.models.odometer_conflict` compara apenas leituras de datas **estritamente anteriores e posteriores**; leituras do mesmo dia não são comparadas.
 - Serviço com data e km cria/atualiza uma leitura com origem `service` (`maintenance.services.save_service`). Se já existir leitura manual no mesmo dia, ela é preservada e o serviço não cria outra. Excluir o serviço remove a leitura gerada por ele.
 - A origem `service` não aparece no formulário manual de leituras.
