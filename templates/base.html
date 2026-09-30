@@ -27,6 +27,7 @@
         <a href="{% url 'problem_list' %}" {% if section == 'problems' %}aria-current="page"{% endif %}><i data-lucide="message-square-warning" aria-hidden="true"></i>Problemas</a>
         <a href="{% url 'timeline' %}" {% if section == 'timeline' %}aria-current="page"{% endif %}><i data-lucide="history" aria-hidden="true"></i>Histórico</a>
         <a href="{% url 'finance' %}" {% if section == 'finance' %}aria-current="page"{% endif %}><i data-lucide="wallet" aria-hidden="true"></i>Finanças</a>
+        <a href="{% url 'assistant_home' %}" {% if section == 'assistant' %}aria-current="page"{% endif %}><i data-lucide="sparkles" aria-hidden="true"></i>Assistente</a>
       </nav>
       <div class="account-nav">
         <a class="btn btn-primary register-button" href="{% url 'register' %}"><i data-lucide="plus" aria-hidden="true"></i>Registrar</a>

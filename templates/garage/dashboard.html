@@ -21,6 +21,7 @@
   {% if alerts %}<ul class="alert-list">{% for alert in alerts|slice:":3" %}{% include 'planning/partials/alert_item.html' %}{% endfor %}</ul>
   {% else %}<p class="muted">Nenhum alerta no momento.{% if not plan_count %} <a href="{% url 'plan_list' %}">Monte seu plano de manutenção</a> para receber avisos.{% endif %}</p>{% endif %}
 </section>
+<aside class="assistant-banner"><span class="register-icon"><i data-lucide="sparkles" aria-hidden="true"></i></span><div><strong>Assistente de manutenção</strong><p>Percebeu algo diferente? Descreva o sintoma e veja possibilidades, urgência e o que perguntar ao mecânico.</p></div><div class="assistant-banner-actions"><a class="btn btn-outline-secondary" href="{% url 'assistant_symptom' %}">Descrever sintoma</a><a class="text-link" href="{% url 'assistant_home' %}">Revisão do carro<i data-lucide="arrow-right" aria-hidden="true"></i></a></div></aside>
 <div class="dashboard-columns">
   <section><div class="section-heading"><h2>Últimos serviços</h2><a class="text-link" href="{% url 'timeline' %}">Linha do tempo<i data-lucide="arrow-right" aria-hidden="true"></i></a></div>
     {% if recent_services %}<ul class="record-list">{% for service in recent_services %}{% include 'maintenance/partials/service_item.html' %}{% endfor %}</ul>
