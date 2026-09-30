@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.test import TestCase
@@ -205,6 +206,11 @@ class SetupTests(TestCase):
 
 
 class GenericProjectTests(TestCase):
+    def test_own_static_files_are_ascii(self):
+        # Served without charset, so non-ASCII text would be decoded as Windows-1252 by some browsers.
+        for name in ("app.css", "app.js"):
+            with self.subTest(name=name):
+                (settings.BASE_DIR / "static" / name).read_bytes().decode("ascii")
     def test_vehicle_form_starts_empty(self):
         self.client.force_login(get_user_model().objects.create_user(username="owner"))
         form = self.client.get("/veiculos/novo/", {"preset": "qualquer"}).context["form"]

@@ -46,6 +46,8 @@ if not DEBUG:
 
 Resultado do teste com `collectstatic`: 13 arquivos copiados, 33 processados, e `{% static %}` devolve `/static/app.<hash>.css`. Rodar `collectstatic --noinput` a cada deploy. Em desenvolvimento nada muda, e os testes continuam sem o manifesto.
 
+Codificação: `app.css` e `app.js` são servidos sem `charset`, e um navegador leu um caractere UTF-8 do CSS como Windows-1252 ("−" virou "âˆ’"). Esses arquivos agora são só ASCII (escapes como `\2212`), e um teste impede regressões. Ao publicar, confirmar que CSS e JS saem com `Content-Type` contendo `charset=utf-8`.
+
 ## 3. HTTPS atrás de proxy
 
 O provedor normalmente termina o HTTPS e repassa HTTP ao aplicativo. Sem ajuste, `SECURE_SSL_REDIRECT` entra em laço de redirecionamento.
