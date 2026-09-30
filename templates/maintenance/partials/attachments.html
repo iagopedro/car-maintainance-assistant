@@ -1,11 +1,11 @@
 <section class="detail-section" aria-labelledby="attachments-title">
   <div class="section-heading"><h2 id="attachments-title">Fotos e documentos</h2></div>
   {% if attachments %}<ul class="attachment-grid">{% for attachment in attachments %}<li class="attachment-card">
-    {% if attachment.is_image %}<a class="attachment-preview" href="{% url 'attachment_file' attachment.pk %}" target="_blank" rel="noopener"><img src="{% url 'attachment_file' attachment.pk %}" alt="{{ attachment.original_name }}" loading="lazy"></a>
-    {% else %}<a class="attachment-preview attachment-file" href="{% url 'attachment_file' attachment.pk %}"><i data-lucide="{% if attachment.content_type == 'application/pdf' %}file-text{% else %}image{% endif %}" aria-hidden="true"></i><span>{% if attachment.content_type == 'application/pdf' %}PDF{% else %}HEIC{% endif %}</span></a>{% endif %}
+    {% if attachment.is_image %}<a class="attachment-preview" href="{% url 'attachment_file' attachment.pk %}" target="_blank" rel="noopener"><img src="{% url 'attachment_file' attachment.pk %}" alt="{{ attachment.original_name }}" loading="lazy"><span class="visually-hidden"> (abre em nova aba)</span></a>
+    {% else %}<a class="attachment-preview attachment-file" href="{% url 'attachment_file' attachment.pk %}"><i data-lucide="{% if attachment.content_type == 'application/pdf' %}file-text{% else %}image{% endif %}" aria-hidden="true"></i><span>{% if attachment.content_type == 'application/pdf' %}PDF{% else %}HEIC{% endif %}</span><span class="visually-hidden"> {{ attachment.original_name }}</span></a>{% endif %}
     <div class="attachment-meta"><span class="attachment-name" title="{{ attachment.original_name }}">{{ attachment.original_name }}</span><span>{{ attachment.size|filesizeformat }}</span></div>
-    <div class="attachment-actions"><a class="text-link" href="{% url 'attachment_file' attachment.pk %}?baixar=1">Baixar</a>
-      <form method="post" action="{% url 'attachment_delete' attachment.pk %}" data-confirm="Remover este anexo? Esta ação não pode ser desfeita.">{% csrf_token %}<button class="text-link danger-link" type="submit">Remover</button></form></div>
+    <div class="attachment-actions"><a class="text-link" href="{% url 'attachment_file' attachment.pk %}?baixar=1">Baixar<span class="visually-hidden"> {{ attachment.original_name }}</span></a>
+      <form method="post" action="{% url 'attachment_delete' attachment.pk %}" data-confirm="Remover este anexo? Esta ação não pode ser desfeita.">{% csrf_token %}<button class="text-link danger-link" type="submit">Remover<span class="visually-hidden"> {{ attachment.original_name }}</span></button></form></div>
   </li>{% endfor %}</ul>{% else %}<p class="muted">Nenhum anexo ainda.</p>{% endif %}
   <form method="post" enctype="multipart/form-data" action="{{ upload_url }}" class="upload-form">{% csrf_token %}
     <label class="upload-button"><i data-lucide="camera" aria-hidden="true"></i><span>Adicionar fotos ou PDF</span>{{ upload_form.attachments }}</label>

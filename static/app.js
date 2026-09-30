@@ -18,7 +18,7 @@ function addPartRow(button) {
   const max = Number(document.getElementById("id_parts-MAX_NUM_FORMS").value);
   const index = Number(total.value);
   if (index >= max) return;
-  const html = document.getElementById("part-template").innerHTML.replaceAll("__prefix__", String(index));
+  const html = document.getElementById("part-template").innerHTML.replaceAll("__prefix__", String(index)).replace("__num__", String(index + 1));
   document.getElementById("parts-list").insertAdjacentHTML("beforeend", html);
   total.value = String(index + 1);
   refreshIcons();

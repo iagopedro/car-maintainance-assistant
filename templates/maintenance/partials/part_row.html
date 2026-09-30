@@ -1,7 +1,7 @@
-<div class="part-row">
+<div class="part-row" role="group" aria-label="Peça {% if forloop.counter %}{{ forloop.counter }}{% else %}__num__{% endif %}">
   {% for hidden in part.hidden_fields %}{{ hidden }}{% endfor %}
   {% include 'partials/field.html' with field=part.name %}
   {% include 'partials/field.html' with field=part.brand_model %}
-  {% if part.instance.pk %}<label class="part-delete">{{ part.DELETE }}<span>Remover</span></label>{% endif %}
+  {% if part.instance.pk %}<label class="part-delete">{{ part.DELETE }}<span>Remover<span class="visually-hidden"> {{ part.instance.name }}</span></span></label>{% endif %}
   {% if part.non_field_errors %}<div class="field-errors">{{ part.non_field_errors }}</div>{% endif %}
 </div>

@@ -119,12 +119,31 @@ class ServiceTests(MediaTestCase):
         self.assertContains(response, "maior que a leitura de 45.000 km")
         self.assertFalse(ServiceRecord.objects.exists())
 
-    def test_same_day_reading_is_kept(self):
+    def test_same_day_lower_or_equal_reading_is_kept_with_warning(self):
         existing = self.reading(0, 45000)
-        self.post_service(date=TODAY().isoformat(), kilometers=45010)
+        response = self.post_service(date=TODAY().isoformat(), kilometers=45000)
         service = ServiceRecord.objects.get()
         self.assertIsNone(service.odometer_reading)
         self.assertEqual(list(self.vehicle.readings.all()), [existing])
+        self.assertContains(self.client.get(response.url), "não foi usada no histórico de km")
+
+    def test_same_day_higher_service_reading_replaces_manual_one(self):
+        existing = self.reading(0, 45000)
+        response = self.post_service(date=TODAY().isoformat(), kilometers=45500)
+        service = ServiceRecord.objects.get()
+        self.assertEqual(service.odometer_reading_id, existing.pk)
+        self.assertEqual(self.vehicle.readings.count(), 1)
+        self.assertEqual(self.vehicle.latest_reading.kilometers, 45500)
+        self.assertEqual(self.vehicle.latest_reading.source, OdometerReading.Source.SERVICE)
+        self.assertContains(self.client.get(response.url), "atualizada para 45.500 km (substitui a leitura de 45.000 km")
+
+    def test_same_day_reading_of_another_service_is_not_taken(self):
+        self.post_service(date=TODAY().isoformat(), kilometers=45000)
+        self.post_service(date=TODAY().isoformat(), kilometers=45500, category="tires")
+        first, second = ServiceRecord.objects.order_by("pk")
+        self.assertIsNotNone(first.odometer_reading)
+        self.assertIsNone(second.odometer_reading)
+        self.assertEqual(self.vehicle.latest_reading.kilometers, 45000)
 
     def test_costs(self):
         self.post_service(parts_cost="120,50", labor_cost="80")
@@ -150,6 +169,15 @@ class ServiceTests(MediaTestCase):
         self.client.post(f"/servicos/{service.pk}/editar/", data)
         self.assertEqual(list(service.parts.values_list("name", flat=True)), ["Óleo 5W30"])
         self.assertContains(self.client.get("/servicos/", {"q": "5W30"}), "Óleo e filtro de óleo")
+
+    def test_part_rows_are_optional_and_labelled(self):
+        form = self.client.get("/servicos/novo/")
+        self.assertContains(form, 'role="group" aria-label="Peça 1"')
+        self.assertContains(form, 'aria-label="Peça __num__"')
+        self.assertNotContains(form, 'name="parts-0-name" maxlength="120" required')
+        response = self.post_service(parts=[{"brand_model": "Tecfil PSL"}])
+        self.assertContains(response, "Informe o nome da peça.")
+        self.assertFalse(ServiceRecord.objects.exists())
 
     def test_delete_removes_generated_reading_and_files(self):
         self.client.post("/servicos/novo/", {"category": "oil", "kind": "unspecified", "date": TODAY().isoformat(),

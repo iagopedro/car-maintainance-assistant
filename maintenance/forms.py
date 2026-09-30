@@ -122,6 +122,18 @@ class PartForm(StyledFormMixin, forms.ModelForm):
         model = ServicePart
         fields = ["name", "brand_model"]
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Part rows are optional; the name is only required once the row is used.
+        self.fields["name"].required = False
+
+    def clean(self):
+        cleaned = super().clean()
+        deleting = cleaned.get("DELETE")
+        if not cleaned.get("name") and not deleting and (cleaned.get("brand_model") or self.instance.pk):
+            self.add_error("name", "Informe o nome da peça.")
+        return cleaned
+
 
 PartFormSet = forms.inlineformset_factory(ServiceRecord, ServicePart, form=PartForm, extra=1, can_delete=True,
                                           max_num=30, validate_max=True)
