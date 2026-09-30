@@ -56,9 +56,19 @@ Registro do que já custou tempo nos incrementos 1 e 2. Leia antes de mudar regr
 - Restauração trata o zip como não confiável: lista fechada de nomes, limites de tamanho lidos de verdade (não só do cabeçalho), hash e tipo real dos anexos, `full_clean` em cada registro, transação única e remoção dos arquivos gravados se algo falhar. Nunca extrair pelo nome que vem no zip.
 - A restauração só é permitida em conta sem veículos; mesclar backups exigiria resolver conflitos e não vale a complexidade.
 
+## Assistente
+
+- Regras em `assistant/knowledge.py` são dados: termos **normalizados** (minúsculas, sem acento), causas com tipo (inspeção ou diagnóstico) e `normal=True` quando pode ser comportamento normal. Testes impedem números de km/meses/anos e afirmações definitivas.
+- Regras específicas são casadas por termos no texto; se nenhuma casar, usa a lista genérica do sintoma. Ordem das regras importa (a primeira causa aparece primeiro).
+- Histórico evita investigações repetidas: causa com `ruled_out_terms` presentes em "causas descartadas" de um relato parecido vai para "Já descartado". Relato parecido = mesmo sintoma e mesmo local, ou 2+ palavras relevantes em comum.
+- Urgência só sobe (`raise_to`) e sempre acumula justificativas: sinais de risco ou gravidade alta = alta; itens de segurança, relato parecido em aberto ou gravidade média = média.
+- Perguntas acumulam em `analysis.questions` e são mescladas no fim; não sobrescreva a lista (a pergunta de garantia já se perdeu assim).
+- O perfil de uso entra no backup (`SECTIONS`); o teste de ida e volta falha se um modelo novo com dados do dono ficar de fora, o que é o comportamento desejado.
+- Menu superior com 7 itens: barra inferior até 1200 px. Teste 1180, 1220, 1300, 1440 e 1500 px.
+
 ## Interface
 
-- Menu superior com 6 itens: ícones ocultos até 1440 px, espaçamento compacto até 1300 px e barra inferior até 1100 px. Ao adicionar itens, teste 1024, 1180, 1280 e 1440 px.
+- Menu superior com 6 itens: ícones ocultos até 1440 px, espaçamento compacto até 1300 px e barra inferior até 1100 px (com 7 itens, até 1200 px).
 - Links repetidos na página (ex.: "Serviços" na barra inferior e na lista de CSV) quebram seletores como `.last`; restrinja pelo contêiner (`.csv-links`).
 - Gráficos com rolagem horizontal começam no fim (`scrollLeft = scrollWidth`) para mostrar os meses recentes no celular.
 - O cabeçalho já transbordou duas vezes ao ganhar itens (700–1000 px com 5 itens; 1100–1440 px com 6). Sempre rode a jornada de navegador com as larguras acima.
@@ -80,7 +90,7 @@ Registro do que já custou tempo nos incrementos 1 e 2. Leia antes de mudar regr
 
 ## Testes
 
-- Unitários/HTTP: `manage.py test garage maintenance planning reports`. Anexos usam `MEDIA_ROOT` temporário (`MediaTestCase`).
+- Unitários/HTTP: `manage.py test garage maintenance planning reports assistant`. Anexos usam `MEDIA_ROOT` temporário (`MediaTestCase`).
 - Em helpers de teste, não use nomes de parâmetro que colidam com campos enviados via `**fields` (ex.: `plan`), senão dá `TypeError: got multiple values`.
 - Navegador: `RUN_BROWSER_TESTS=1` + `manage.py test garage.test_browser`; usa banco temporário, nunca o `db.sqlite3` pessoal.
 - **Playwright síncrono roda dentro de um loop asyncio**: consultar o ORM dentro de `with sync_playwright()` gera `SynchronousOnlyOperation`. Crie dados antes do bloco e obtenha ids pela interface (`page.url`, links).

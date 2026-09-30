@@ -1,50 +1,62 @@
 # Rodagem
 
-Garagem pessoal para acompanhamento automotivo, em portugues do Brasil.
+Garagem pessoal para acompanhar a manutenção do carro por muitos anos: registre serviços e problemas em segundos pelo celular, planeje as próximas manutenções, receba alertas preventivos, acompanhe os gastos e leve ao mecânico um resumo organizado.
+
+> O Rodagem organiza os seus registros com regras gerais e explicáveis. Ele não inventa intervalos de manutenção, não faz diagnósticos e não substitui a avaliação de um mecânico.
 
 Antes de alterar regras, testes ou anexos, leia [docs/licoes-aprendidas.md](docs/licoes-aprendidas.md).
 
-## Incremento 1
+## Funcionalidades
 
-- Conta local inicial, login, logout por POST, troca de senha e bloqueio temporario apos cinco falhas de login.
-- Cadastro e edicao de varios veiculos, separados por proprietario, e selecao de veiculo ativo.
-- Dashboard com dados reais: ultima leitura, quantidade de registros e diferenca entre primeira e ultima leitura.
-- Leituras de quilometragem com data, origem, observacao, filtros e paginacao.
-- Validacao cronologica: leituras retroativas coerentes sao aceitas; retrocesso, data futura e duplicidade no mesmo dia sao rejeitados.
-- Formularios responsivos, CSRF, escape de conteudo e recursos visuais servidos localmente.
+### Garagem e quilometragem
+- Conta local (sem credenciais padrão), vários veículos por proprietário e veículo ativo.
+- A quilometragem atual é sempre a última leitura por data. Leituras retroativas coerentes são aceitas; retrocesso, data futura e duas leituras no mesmo dia são rejeitados.
+- Serviço com data e km atualiza o histórico de km automaticamente.
 
-## Incremento 2
+### Serviços
+- Botão **Registrar** (barra inferior no celular). Só a categoria é obrigatória; data em branco significa "não sei".
+- Detalhes opcionais: tipo (preventiva, corretiva, inspeção), oficina, peças com marca/código, peças e mão de obra, garantia, fotos e PDFs.
+- Valores como `89,90`, `1.234,56` ou `R$ 150`.
 
-- Botao **Registrar** (barra inferior no celular) com tres opcoes: servico, problema ou quilometragem.
-- Servicos: so a categoria e obrigatoria. Titulo, data, km, valor e fotos ficam no primeiro bloco; tipo, oficina, pecas, custos detalhados, garantia e observacoes ficam em "Mais detalhes". Data em branco significa data desconhecida.
-- Valores aceitam formatos como `89,90`, `1.234,56` e `R$ 150`. Com pecas e mao de obra, o total e calculado.
-- Servico com data e km cria ou atualiza a leitura do odometro (origem "Registro de servico"); editar ou excluir o servico ajusta essa leitura. Se ja existir leitura no mesmo dia, ela e mantida.
-- Problemas: sintoma em botoes, descricao, data, km, local e gravidade percebida. Diagnostico, causas descartadas, solucao e servico relacionado ficam em uma secao opcional. Acompanhamento cronologico ate a resolucao.
-- Um servico pode resolver um problema em aberto; o problema e marcado como resolvido e ligado ao servico.
-- Atalho para registrar o caso da agua na porta traseira como problema resolvido, com causas descartadas (combustivel, bomba, injecao) e data desconhecida. Aparece para um Compacto sem problemas registrados.
-- Anexos privados (JPG, PNG, WEBP, HEIC, PDF, ate 10 MB, 10 por envio): tipo verificado pelo conteudo, nome aleatorio em `media/`, acesso somente pelo dono.
-- Listas com busca, filtro por categoria/periodo, total registrado e abas de situacao para problemas. Exclusao com confirmacao.
+### Problemas e sintomas
+- Sintoma em botões, descrição livre, local, gravidade percebida e acompanhamento até a resolução.
+- Diagnóstico, **causas já descartadas** e solução ficam registrados para não repetir investigações. Um serviço pode resolver um problema.
+- Atalho para registrar o caso já resolvido da água na porta traseira (não relacionado a combustível, bomba ou injeção).
 
-Nao implementados ainda: notificacoes fora do aplicativo e assistente de sintomas. As pendencias do painel sao cadastrais, nao diagnosticos mecanicos. Leituras manuais sao somente adicionadas e consultadas; edicao auditada e troca de odometro exigem uma evolucao especifica. Fotos nao tem metadados (como localizacao) removidos.
+### Plano de manutenção
+- Itens com tipo — **recomendação do fabricante**, **preventiva pelo uso**, **inspeção sugerida** e **precisa de diagnóstico profissional** —, prioridade, motivo, fonte e custo estimado.
+- Repetição por km e/ou meses (vale o que vier primeiro); a próxima referência sai do último serviço ligado ao item.
+- 16 sugestões comuns **sem intervalos**: você informa os valores do manual. Itens do fabricante ficam "a validar" até a fonte ser informada e confirmada.
 
-## Incremento 3
+### Alertas
+- Itens atrasados ou chegando, itens sem referência, programações vencidas, km desatualizado, problemas graves ou parados, sintomas recorrentes, garantias terminando e backup pendente.
+- Cada alerta explica o motivo. Antecedência (km e dias) e prioridades exibidas são configuráveis.
 
-- **Plano de manutencao** (`/plano/`): itens com tipo (recomendacao do fabricante, preventiva pelo uso, inspecao sugerida, diagnostico profissional), prioridade, motivo, custo estimado e fonte.
-- Repeticao por km e/ou meses (vale o que ocorrer primeiro) ou apenas proxima data/km. A proxima referencia e calculada a partir do ultimo servico ligado ao item.
-- Situacoes: passou da referencia, chegando, atualize o km, sem referencia, programado, em dia, realizado e descartado. Acoes: registrar realizacao (abre o formulario de servico ja preenchido), programar data, vincular servico ja registrado, descartar com motivo e reativar.
-- **Sugestoes** (`/plano/sugestoes/`): 16 itens comuns **sem intervalos**. Recomendacoes do fabricante ficam marcadas "a validar no manual" ate voce informar a fonte e confirmar.
-- **Alertas** (`/alertas/`, sino no cabecalho e painel): itens atrasados ou chegando, itens sem referencia (agrupados), itens de diagnostico, programacao vencida, quilometragem desatualizada, problemas de gravidade alta ou sem acompanhamento, sintomas recorrentes e garantias terminando. Cada alerta explica o motivo, sem afirmar defeito.
-- **Preferencias** (`/alertas/configurar/`): antecedencia em km e dias, lembrete de atualizar o km e prioridades exibidas. Os valores padrao (1.000 km, 30 dias) sao apenas antecedencia de aviso, nao intervalos de manutencao.
-- No celular, a barra inferior passa a ter Inicio, Plano, Registrar, Servicos e Problemas; a Garagem fica no icone do cabecalho. A barra inferior e usada ate 1000 px de largura.
+### Assistente de manutenção
+- **Descrever um sintoma**: possibilidades comuns (separando inspeção sugerida, possível problema que precisa de diagnóstico e o que costuma ser normal), urgência estimada com justificativa e perguntas para levar ao mecânico.
+- Usa o histórico: relatos parecidos e suas soluções, **causas já descartadas** (não sugere de novo), serviços recentes em garantia, acessórios instalados e perfil de uso.
+- **Revisão do carro**: manutenções recomendadas agora pelos quatro tipos, itens sem histórico confirmado, itens que dependem do tempo, sugestões pelo **perfil de uso** (trânsito, trajetos curtos, carro parado, carga, estradas ruins, poeira) e peças trocadas no último ano.
+- **Resumo para o mecânico**: uma página pronta para imprimir ou salvar em PDF.
+- Sinais de risco (freio, fumaça, cheiro de combustível, superaquecimento, luz vermelha, óleo) elevam a urgência e recomendam avaliação profissional.
 
-## Incremento 4
+### Linha do tempo e finanças
+- Linha do tempo com serviços, peças, problemas, km e os próximos itens do plano, filtrável por tipo, categoria, situação e período.
+- Gastos por período, categoria e tipo (preventiva x corretiva), média mensal, custo por km, total acumulado e previsão de 12 meses a partir do plano.
 
-- **Linha do tempo** (`/historico/`): servicos, pecas trocadas, relatos e acompanhamento de problemas e leituras manuais de km, agrupados por mes, com "Pela frente" (proximos itens do plano). Filtros por tipo, categoria, situacao (preventiva, corretiva, inspecao, problema aberto ou resolvido) e periodo.
-- **Financas** (`/financas/`): gasto no periodo (12 meses, por ano ou tudo), media mensal, custo por km (12 meses, pelas leituras), total acumulado, preventiva x corretiva, por categoria, grafico por mes/ano e previsao para 12 meses a partir do plano (itens por km usam a media de km por dia das leituras). Servicos sem valor ficam fora dos totais e sao contados a parte.
-- **Seus dados** (`/dados/`): planilhas CSV (servicos, problemas, quilometragem, plano) prontas para Excel em portugues, com protecao contra injecao de formulas; backup completo (.zip com dados e anexos) e restauracao.
-- A restauracao so e aceita em conta **sem veiculos** (instalacao nova), para nunca misturar ou sobrescrever dados. O arquivo e validado (formato, versao, itens permitidos, tamanhos, hash e tipo dos anexos) e qualquer erro desfaz tudo.
-- Alerta de prioridade baixa quando ha dados e nenhum backup nos ultimos 30 dias.
-- Navegacao: Historico e Financas no menu superior; menu "Mais opcoes" (icone no cabecalho) com Linha do tempo, Financas, Garagem, Seus dados, Configurar alertas e Alterar senha. A barra inferior e usada ate 1100 px.
+### Seus dados
+- Planilhas CSV para Excel em português (com proteção contra injeção de fórmulas).
+- Backup `.zip` com dados e anexos, restaurável pela interface em uma conta nova. Lembrete quando não há backup há 30 dias.
+
+## Primeiros passos
+
+1. Crie a conta e cadastre o carro (há um atalho para o Compacto).
+2. Informe a quilometragem atual.
+3. Em **Plano > Ver sugestões**, adicione os itens e preencha os intervalos do manual, indicando a fonte.
+4. Registre os serviços antigos de que se lembrar (deixe a data em branco se não souber).
+5. Em **Assistente > Perfil de uso**, marque como o carro é usado.
+6. No dia a dia: **Registrar** para serviços, problemas e km; confira os alertas no sino.
+7. Antes da oficina: **Assistente > Resumo para o mecânico**.
+8. Uma vez por mês: **Mais opções > Seus dados > Baixar backup** e guarde o arquivo fora do computador.
 
 ### Backup agendado (opcional)
 
@@ -52,7 +64,7 @@ Nao implementados ainda: notificacoes fora do aplicativo e assistente de sintoma
 .\.venv\Scripts\python.exe manage.py export_backup --username SEU_USUARIO --output D:\backups-rodagem
 ```
 
-Pode ser agendado no Agendador de Tarefas do Windows. A pasta `backups/` (padrao) esta fora do versionamento. Guarde copias fora do computador. Para restaurar: nova instalacao, crie a conta, abra **Seus dados > Restaurar backup** antes de cadastrar veiculos. A senha nao faz parte do backup.
+Pode ser agendado no Agendador de Tarefas do Windows. A pasta `backups/` (padrão) está fora do versionamento. Para restaurar: nova instalação, crie a conta e abra **Seus dados > Restaurar backup** antes de cadastrar veículos. A senha não faz parte do backup.
 
 ## Executar no Windows
 
@@ -66,33 +78,31 @@ py -3.13 -m venv .venv
 .\.venv\Scripts\python.exe manage.py runserver 127.0.0.1:8000
 ```
 
-Abra http://127.0.0.1:8000 e crie sua conta diretamente no navegador. Nao ha credenciais padrao. A criacao da primeira conta so aceita conexoes locais e fecha depois que existe um usuario. Nao publique essa etapa atras de um proxy: realize a configuracao local antes de qualquer exposicao externa.
+Abra http://127.0.0.1:8000 e crie sua conta no navegador. A criação da primeira conta só aceita conexões locais e fecha depois que existe um usuário; faça essa etapa antes de qualquer exposição externa.
 
-O atalho do Compacto apenas preenche o formulario: Exemplo Compacto 2022 e motorizacao informada, nao validada. Nao cadastra o carro automaticamente, nao presume quilometragem, combustivel ou aquisicao e nao cria historico de manutencao. O caso da agua na porta tambem so preenche o formulario com o seu relato; nada e salvo sem confirmacao.
-
-Textos pessoais do atalho (ex.: rotina de uso) ficam em `.local/presets.json`, fora do versionamento. Campos aceitos: `brand`, `model`, `version`, `model_year`, `manufacture_year`, `engine`, `fuel`, `plate`, `notes`. Exemplo:
+Os atalhos do Compacto e do caso da porta apenas preenchem formulários; nada é salvo sem confirmação e nada é presumido (km, aquisição, combustível). Textos pessoais do atalho ficam em `.local/presets.json`, fora do versionamento. Campos aceitos: `brand`, `model`, `version`, `model_year`, `manufacture_year`, `engine`, `fuel`, `plate`, `notes`:
 
 ```json
-{"exemplo": {"notes": "Descreva aqui trajetos e condicoes de uso."}}
+{"exemplo": {"notes": "Descreva aqui trajetos e condições de uso."}}
 ```
 
-O servidor acima e de desenvolvimento, restrito ao computador. Para uso local prolongado, apos `collectstatic`, e possivel usar o servidor WSGI instalado:
+Para uso local prolongado, após `collectstatic`, prefira o servidor WSGI instalado:
 
 ```powershell
 .\.venv\Scripts\waitress-serve.exe --listen=127.0.0.1:8000 config.wsgi:application
 ```
 
-Pare o servidor com Ctrl+C. Se a porta estiver ocupada, utilize outra, por exemplo 8001. Nao use `0.0.0.0` nem publique o servidor de desenvolvimento na internet. O acesso por celular requer configuracao posterior de rede/HTTPS; layout responsivo nao significa que o telefone ja consegue acessar o localhost do computador.
+Pare com Ctrl+C. Não use `0.0.0.0` nem publique o servidor de desenvolvimento na internet. O layout é responsivo, mas o acesso pelo celular exige publicar a aplicação com HTTPS (veja "Limitações").
 
 ## Testar
 
 ```powershell
-.\.venv\Scripts\python.exe manage.py test garage maintenance planning reports
+.\.venv\Scripts\python.exe manage.py test garage maintenance planning reports assistant
 .\.venv\Scripts\python.exe manage.py check
 .\.venv\Scripts\python.exe manage.py makemigrations --check --dry-run
 ```
 
-O teste de navegador e opcional e usa banco temporario, sem inserir dados no banco pessoal:
+Testes de navegador (opcionais, em banco temporário, sem tocar no banco pessoal):
 
 ```powershell
 .\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
@@ -102,30 +112,53 @@ $env:RUN_BROWSER_TESTS = '1'
 Remove-Item Env:RUN_BROWSER_TESTS
 ```
 
-Capturas de tela ficam em `artifacts/`, fora do versionamento. A primeira jornada cobre criacao da conta, Compacto, edicao, leitura retroativa, filtros HTMX, rejeicao de inconsistencia, segundo veiculo, troca de veiculo ativo, troca de senha e login. A segunda, em celular, cobre registro de servico com pecas e anexos, caso da porta traseira, problema com acompanhamento ate a resolucao, filtro de servicos e exclusao. A terceira cobre sugestoes do plano, validacao da fonte, registro da ultima realizacao, alertas no painel, programacao e preferencias de alerta, com larguras de 360, 800, 1024 e 1280 pixels. As demais verificam 360, 390 e 1280/1440 pixels.
+São cinco jornadas (conta e veículos; serviços e problemas no celular; plano e alertas; histórico, finanças, CSV, backup e restauração; assistente). Elas verificam erros de JavaScript, respostas HTTP de erro e rolagem horizontal entre 360 e 1500 px. Capturas ficam em `artifacts/`, fora do versionamento.
 
-## Dados e recuperacao
+## Dados, backup e recuperação
 
-O banco fica em `db.sqlite3`, os anexos em `media/` e a chave local gerada automaticamente em `.local/secret.key`. Os tres estao fora do versionamento; proteja-os pelas permissoes da sua conta do Windows e pelo backup do computador. SQLite nao fornece criptografia em repouso neste projeto.
-
-Enquanto o backup automatizado nao existe, pare todos os processos do aplicativo antes de copiar o banco e as pastas `media` e `.local` para um local protegido. Restaure apenas com o aplicativo parado e usando uma versao compativel do projeto. A restauracao manual ainda nao integra a suite automatizada. CSV nao substituira backup.
-
-Desde o incremento 4, prefira o backup .zip de **Seus dados** (ou `manage.py export_backup`): ele pode ser restaurado pela interface e e testado automaticamente (ida e volta completa). A copia manual acima continua valida para migrar a instalacao inteira, incluindo a conta.
-
-Para recuperar acesso, execute localmente e digite a nova senha no terminal, nunca no chat:
+- O banco fica em `db.sqlite3`, os anexos em `media/` e a chave local em `.local/secret.key`, todos fora do versionamento. Não há criptografia em repouso; proteja a conta do Windows.
+- Backup recomendado: `.zip` de **Seus dados** ou `manage.py export_backup`. É testado automaticamente de ponta a ponta (exportar e restaurar em outra conta).
+- Para migrar a instalação inteira, incluindo a conta: com o aplicativo parado, copie `db.sqlite3`, `media/` e `.local/`.
+- CSV serve para consulta; não substitui o backup.
+- Recuperar acesso (digite a senha no terminal, nunca no chat):
 
 ```powershell
 .\.venv\Scripts\python.exe manage.py changepassword SEU_USUARIO
 ```
 
-O bloqueio por falhas expira apos 15 minutos. Placas, observacoes, servicos, problemas e anexos sao privados por proprietario. A interface nao permite exclusao de veiculos para evitar perda involuntaria de historico; servicos e problemas podem ser excluidos apos confirmacao.
+O bloqueio por falhas de login expira após 15 minutos. Todos os dados são privados por proprietário. Veículos não podem ser excluídos pela interface, para evitar perda de histórico.
 
-## Arquitetura e evolucao
+## Arquitetura e decisões
 
-Monolito modular Django 5.2 LTS, SQLite, templates, Bootstrap e HTMX. `garage` cuida de veiculos e odometro; `maintenance` cuida de servicos, pecas, problemas, acompanhamento e anexos; `planning` cuida do plano, sugestoes e alertas; `reports` cuida da linha do tempo, financas, CSV e backup. As regras de vencimento ficam em `planning/rules.py` (funcoes puras) e os alertas em `planning/alerts.py`, calculados a cada requisicao a partir dos dados, sem tabela de alertas. Regras ficam nos modelos e em `services.py` (transacoes); as views sempre filtram pelo proprietario. A quilometragem atual e derivada da ultima leitura cronologica, sem coluna duplicada que possa divergir. Uma leitura por veiculo por dia e uma restricao deliberada.
+Monólito modular Django 5.2 LTS, SQLite, templates, Bootstrap e HTMX, com recursos servidos localmente (sem CDN).
 
-Fontes tecnicas e regras preventivas terao modelos proprios nos incrementos seguintes. A classificacao preventiva/corretiva dos servicos sera a base da comparacao financeira. Nao ha intervalos de manutencao presumidos. A validacao de motor, versao e manual sera obrigatoria antes de aplicar recomendacoes de fabricante.
+| App | Responsabilidade |
+|---|---|
+| `garage` | conta, veículos, quilometragem, painel |
+| `maintenance` | serviços, peças, problemas, acompanhamento, anexos |
+| `planning` | plano, sugestões, regras de vencimento (`rules.py`), alertas (`alerts.py`) |
+| `reports` | linha do tempo, finanças, CSV, backup e restauração |
+| `assistant` | base de conhecimento (`knowledge.py`), análise e revisão (`engine.py`), perfil de uso, resumo para o mecânico |
 
-Para nuvem: PostgreSQL com migracao de dados testada, armazenamento privado de anexos, HTTPS e rotina de backup/restauracao. A configuracao atual ainda e local. Em producao, definir `DJANGO_DEBUG=0`, `DJANGO_SECRET_KEY` e `DJANGO_ALLOWED_HOSTS`; cookies seguros e redirecionamento HTTPS sao ativados. Validar `manage.py check --deploy` e proxy confiavel antes da publicacao. Nao confiar automaticamente em cabecalhos de proxy.
+Decisões principais:
 
-As dependencias de execucao estao fixadas nas versoes instaladas e testadas; revisar atualizacoes de seguranca periodicamente. Recursos de terceiros e licencas estao em `static/vendor`. A ilustracao PNG e original e pode ser regenerada com `scripts/generate-artwork.ps1` no Windows. Nao representa uma fotografia do veiculo.
+- **Django com templates e HTMX, sem SPA:** um único projeto fácil de manter, com autenticação, ORM, migrações e segurança maduros.
+- **Uso local primeiro:** SQLite e servidor restrito ao computador. Na nuvem, o caminho é PostgreSQL, armazenamento privado de anexos, HTTPS e `DJANGO_DEBUG=0` com `DJANGO_SECRET_KEY` e `DJANGO_ALLOWED_HOSTS`, validando com `manage.py check --deploy`.
+- **Dados derivados, não duplicados:** quilometragem atual, situação do plano, alertas e linha do tempo são calculados a cada requisição. Não há colunas ou tabelas que possam divergir.
+- **Nenhum intervalo presumido:** sugestões vêm sem números (há testes que garantem isso), e recomendações do fabricante ficam "a validar" até terem fonte confirmada.
+- **Assistente por regras, não IA generativa:** explicável, testável, gratuito, funciona offline e não "inventa" diagnósticos. A base é geral (não específica de um modelo) e sempre separa inspeção, possível problema e comportamento normal.
+- **Segurança:** isolamento por proprietário em todas as consultas, CSRF, bloqueio de login, anexos validados pelo conteúdo e servidos só ao dono, CSV sem fórmulas e restauração de backup tratada como arquivo não confiável.
+- **Privacidade no repositório público:** dados pessoais apenas em `.local/`; commits com e-mail noreply.
+
+## Limitações conhecidas
+
+- Alertas aparecem só dentro do aplicativo (sem e-mail ou notificação no celular).
+- O acesso pelo celular exige publicar com HTTPS, por exemplo em uma hospedagem de baixo custo ou em um servidor doméstico com certificado; isso não foi configurado.
+- Leituras de km manuais não podem ser editadas, e a troca de odômetro não é suportada.
+- Metadados das fotos (como localização) não são removidos.
+- A restauração de backup só funciona em conta sem veículos; mesclar dados não é suportado.
+- A base do assistente é geral. Intervalos e particularidades do seu modelo dependem do manual e do mecânico.
+
+## Manutenção do projeto
+
+As dependências estão fixadas nas versões testadas; revise atualizações de segurança periodicamente (Django 5.2 LTS recebe correções até abril de 2028). Recursos de terceiros e licenças estão em `static/vendor`. A ilustração PNG é original e pode ser regenerada com `scripts/generate-artwork.ps1`.
