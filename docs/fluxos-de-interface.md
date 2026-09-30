@@ -19,7 +19,7 @@ Endereço: http://127.0.0.1:8001. Os fluxos são sequenciais: cada um usa os dad
 |---|---|---|---|
 | 1 | Primeiro acesso e conta | Aprovado | 30/09/2026 |
 | 2 | Garagem e quilometragem | Aprovado | 30/09/2026 |
-| 3 | Serviços | Pendente | |
+| 3 | Serviços | Aprovado | 30/09/2026 |
 | 4 | Problemas | Pendente | |
 | 5 | Plano de manutenção | Pendente | |
 | 6 | Alertas e preferências | Pendente | |
@@ -78,11 +78,19 @@ Achados (todos corrigidos):
 | Passo | Ação | Resultado esperado |
 |---|---|---|
 | 3.1 | Registrar > Serviço, só a categoria "Revisão ou inspeção geral", data em branco | Salvo; exibido como "Data desconhecida" |
-| 3.2 | Novo serviço: óleo, título, data de hoje, 45.500 km, total `189,90`, foto (PNG) | Mensagem "Quilometragem atual atualizada para 45.500 km"; foto visível |
+| 3.2 | Novo serviço: óleo, título, data de hoje, 45.500 km, total `189,90`, foto (PNG) | Mensagem "Quilometragem atual atualizada para 45.500 km (substitui a leitura de 45.000 km do mesmo dia)"; foto visível |
 | 3.3 | Em "Mais detalhes": preventiva, oficina, duas peças (com "Adicionar outra peça"), peças `120` e mão de obra `69,90` | Detalhe mostra peças e custos |
 | 3.4 | Editar com peças `300`, mão de obra `80` e total `100` | Erro: peças e mão de obra somam mais que o total |
 | 3.5 | Lista de serviços: busca por nome de peça e filtro por categoria | Resultados atualizam sem recarregar a página |
 | 3.6 | Excluir o serviço de 3.1 | Confirmação antes; removido |
+
+Achados (todos corrigidos):
+
+- O km de um serviço era descartado em silêncio quando já havia leitura no mesmo dia. Agora o maior valor do dia prevalece, com mensagem; se o do serviço for menor ou igual, a leitura existente fica e aparece um aviso. Leitura de outro serviço nunca é substituída.
+- Mensagens de aviso ganharam estilo próprio (antes usariam o visual de sucesso).
+- Anexos: "Baixar" e "Remover" repetidos sem contexto; agora incluem o nome do arquivo, e a imagem avisa que abre em nova aba.
+- Peças: linhas com nomes idênticos e falso "obrigatório"; agora cada linha é um grupo "Peça N", e o nome só é exigido quando a linha é usada.
+- Recomendação para a nuvem: servir estáticos com nome versionado (hash), para o navegador não usar JS/CSS antigo após atualizações.
 
 ## 4. Problemas
 
